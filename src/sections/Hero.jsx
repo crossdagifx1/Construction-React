@@ -98,6 +98,21 @@ const Hero = () => {
               Start a project
             </Link>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.9 }}
+            className="mt-10 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-wider text-stone/50"
+          >
+            <span>Dev: <a href="https://gnexuset.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-ink hover:text-accent transition-colors">gnexuset.com</a></span>
+            <span>|</span>
+            <a href="tel:+251995270894" className="hover:text-ink transition-colors">Call</a>
+            <span>•</span>
+            <a href="https://wa.me/251995270894" target="_blank" rel="noopener noreferrer" className="hover:text-ink transition-colors">WhatsApp</a>
+            <span>•</span>
+            <a href="https://t.me/crossdagi" target="_blank" rel="noopener noreferrer" className="hover:text-ink transition-colors">Telegram</a>
+          </motion.div>
         </div>
 
         <div className="relative lg:col-span-5">

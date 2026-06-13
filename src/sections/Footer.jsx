@@ -102,6 +102,15 @@ const Footer = () => {
 
       <div className="shell flex flex-col items-center justify-between gap-3 border-t border-paper/10 py-7 text-sm text-paper/50 sm:flex-row">
         <p>&copy; {new Date().getFullYear()} HAVI'S DESIGN. All rights reserved.</p>
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-paper/40">
+          <span>Developed by <a href="https://gnexuset.com" target="_blank" rel="noopener noreferrer" className="text-paper/60 hover:text-accent font-medium underline underline-offset-2 decoration-paper/20">gnexuset.com</a></span>
+          <span>|</span>
+          <a href="tel:+251995270894" className="hover:text-paper transition-colors">Call</a>
+          <span>•</span>
+          <a href="https://wa.me/251995270894" target="_blank" rel="noopener noreferrer" className="hover:text-paper transition-colors">WA</a>
+          <span>•</span>
+          <a href="https://t.me/crossdagi" target="_blank" rel="noopener noreferrer" className="hover:text-paper transition-colors">Telegram</a>
+        </div>
         <Link to="/admin/login" className="transition-colors hover:text-paper/80">
           Admin
         </Link>
