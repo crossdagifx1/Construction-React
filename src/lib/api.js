@@ -29,6 +29,11 @@ export const api = {
   // Public
   getSite: () => request("/site"),
   submitContact: (body) => request("/contact", { method: "POST", body }),
+  getBlogs: () => request("/site/blogs"),
+  getBlog: (slug) => request(`/site/blogs/${slug}`),
+  getAds: () => request("/site/ads"),
+  getAd: (id) => request(`/site/ads/${id}`),
+  submitAd: (body) => request("/site/ads", { method: "POST", body }),
 
   // Auth
   login: (body) => request("/auth/login", { method: "POST", body }),

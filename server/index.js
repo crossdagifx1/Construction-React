@@ -4,6 +4,8 @@ import cors from "cors";
 
 import authRoutes from "./routes/auth.js";
 import siteRoutes from "./routes/site.js";
+import blogRoutes from "./routes/blog.js";
+import adRoutes from "./routes/ad.js";
 import settingsRoutes from "./routes/settings.js";
 import contactRoutes from "./routes/contact.js";
 import uploadRoutes from "./routes/upload.js";
@@ -21,11 +23,45 @@ app.get("/api/health", (_req, res) =>
 // Public + auth
 app.use("/api/auth", authRoutes);
 app.use("/api/site", siteRoutes);
+app.use("/api/site/blogs", blogRoutes);
+app.use("/api/site/ads", adRoutes);
 app.use("/api/contact", contactRoutes);
 
 // Admin content
 app.use("/api/admin/settings", settingsRoutes);
 app.use("/api/admin/upload", uploadRoutes);
+app.use(
+  "/api/admin/blogs",
+  crudRouter("blogPost", [
+    "order",
+    "slug",
+    "title",
+    "excerpt",
+    "content",
+    "imageUrl",
+    "category",
+    "author",
+    "readTime",
+    "published",
+  ])
+);
+app.use(
+  "/api/admin/ads",
+  crudRouter("adPost", [
+    "order",
+    "title",
+    "type",
+    "description",
+    "price",
+    "location",
+    "contactPhone",
+    "contactEmail",
+    "imageUrl",
+    "features",
+    "approved",
+    "featured",
+  ])
+);
 app.use(
   "/api/admin/services",
   crudRouter("service", ["order", "icon", "title", "about"])

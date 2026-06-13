@@ -67,6 +67,14 @@ const ContactEditor = () => {
         </div>
         <TextField label="Email" value={contact.email} onChange={(v) => upd({ email: v })} />
         <TextField label="Address" value={contact.address} onChange={(v) => upd({ address: v })} />
+        <div className="border-t border-line/60 pt-4 mt-4 space-y-4">
+          <Label>Social Media Channels</Label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <TextField label="TikTok URL" value={contact.tiktok || ""} onChange={(v) => upd({ tiktok: v })} />
+            <TextField label="Instagram URL" value={contact.instagram || ""} onChange={(v) => upd({ instagram: v })} />
+            <TextField label="YouTube URL" value={contact.youtube || ""} onChange={(v) => upd({ youtube: v })} />
+          </div>
+        </div>
       </Card>
 
       <Card className="mt-6">

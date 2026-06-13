@@ -9,6 +9,7 @@ const Hero = () => {
   const ref = useRef(null);
   const { data } = useSiteData();
   const hero = data.settings.hero;
+  const contact = data.settings.contact || {};
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -99,19 +100,46 @@ const Hero = () => {
             </Link>
           </motion.div>
 
+          {/* Styled Developer Info */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.1, duration: 0.9 }}
-            className="mt-10 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-wider text-stone/50"
+            transition={{ delay: 1.25, duration: 0.9 }}
+            className="mt-8 flex flex-wrap items-center gap-2.5 text-[10px] uppercase tracking-wider text-stone/50"
           >
-            <span>Dev: <a href="https://gnexuset.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-ink hover:text-accent transition-colors">gnexuset.com</a></span>
+            <span>
+              Crafted by{" "}
+              <a
+                href="https://gnexuset.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-ink/75 hover:text-accent transition-colors duration-300"
+              >
+                gnexuset.com
+              </a>
+            </span>
             <span>|</span>
-            <a href="tel:+251995270894" className="hover:text-ink transition-colors">Call</a>
+            <a href="tel:+251995270894" className="hover:text-ink transition-colors duration-300">
+              Call
+            </a>
             <span>•</span>
-            <a href="https://wa.me/251995270894" target="_blank" rel="noopener noreferrer" className="hover:text-ink transition-colors">WhatsApp</a>
+            <a
+              href="https://wa.me/251995270894"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-ink transition-colors duration-300"
+            >
+              WhatsApp
+            </a>
             <span>•</span>
-            <a href="https://t.me/crossdagi" target="_blank" rel="noopener noreferrer" className="hover:text-ink transition-colors">Telegram</a>
+            <a
+              href="https://t.me/crossdagi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-ink transition-colors duration-300"
+            >
+              Telegram
+            </a>
           </motion.div>
         </div>
 

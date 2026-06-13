@@ -12,6 +12,8 @@ import {
   FiMenu,
   FiX,
   FiPhone,
+  FiBookOpen,
+  FiTag,
 } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/HAVI LOGO.png";
@@ -24,6 +26,8 @@ const links = [
   { to: "/admin/process", label: "Process", icon: FiList },
   { to: "/admin/projects", label: "Projects", icon: FiImage },
   { to: "/admin/testimonials", label: "Testimonials", icon: FiMessageSquare },
+  { to: "/admin/blogs", label: "Blogs Editor", icon: FiBookOpen },
+  { to: "/admin/ads", label: "Ad Postings", icon: FiTag },
   { to: "/admin/contact", label: "Contact info", icon: FiPhone },
   { to: "/admin/messages", label: "Messages", icon: FiMessageSquare },
 ];

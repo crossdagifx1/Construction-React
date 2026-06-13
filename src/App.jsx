@@ -8,6 +8,9 @@ import AboutPage from "./pages/AboutPage";
 import PortfolioPage from "./pages/PortfolioPage";
 import ProjectPage from "./pages/ProjectPage";
 import ContactPage from "./pages/ContactPage";
+import BlogPage from "./pages/BlogPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
+import AdListingPage from "./pages/AdListingPage";
 import NotFound from "./pages/NotFound";
 
 import Login from "./pages/admin/Login";
@@ -20,6 +23,8 @@ import ServicesEditor from "./pages/admin/ServicesEditor";
 import ProcessEditor from "./pages/admin/ProcessEditor";
 import ProjectsEditor from "./pages/admin/ProjectsEditor";
 import TestimonialsEditor from "./pages/admin/TestimonialsEditor";
+import BlogsEditor from "./pages/admin/BlogsEditor";
+import AdsEditor from "./pages/admin/AdsEditor";
 import Messages from "./pages/admin/Messages";
 
 function App() {
@@ -34,6 +39,9 @@ function App() {
           <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/portfolio/:slug" element={<ProjectPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogDetailPage />} />
+          <Route path="/listings" element={<AdListingPage />} />
         </Route>
 
         {/* Admin */}
@@ -54,6 +62,8 @@ function App() {
           <Route path="process" element={<ProcessEditor />} />
           <Route path="projects" element={<ProjectsEditor />} />
           <Route path="testimonials" element={<TestimonialsEditor />} />
+          <Route path="blogs" element={<BlogsEditor />} />
+          <Route path="ads" element={<AdsEditor />} />
           <Route path="messages" element={<Messages />} />
         </Route>
 

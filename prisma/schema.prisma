@@ -80,3 +80,37 @@ model ContactMessage {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  order     Int      @default(0)
+  slug      String   @unique
+  title     String
+  excerpt   String
+  content   String   // Can hold markdown, text or simple HTML
+  imageUrl  String
+  category  String
+  author    String   @default("HAVI'S DESIGN")
+  readTime  String   @default("5 min read")
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdPost {
+  id           String   @id @default(cuid())
+  order        Int      @default(0)
+  title        String
+  type         String   // E.g., "Material Supply", "Machinery Rental", etc.
+  description  String
+  price        String?  // E.g., "Negotiable", "ETB 15,000/day"
+  location     String   @default("Addis Ababa")
+  contactPhone String
+  contactEmail String?
+  imageUrl     String
+  features     Json?    // Array of key specifications/highlights
+  approved     Boolean  @default(true)
+  featured     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

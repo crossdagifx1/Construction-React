@@ -149,6 +149,202 @@ async function main() {
     data: testimonials.map((t, i) => ({ ...t, order: i })),
   });
   console.log("✓ Testimonials seeded");
+
+  // ── Blogs ──────────────────────────────────────────────
+  const blogs = [
+    {
+      slug: "art-of-quiet-luxury",
+      title: "The Art of Quiet Luxury in Modern Interiors",
+      excerpt: "Quiet luxury is more than a trend; it's a design philosophy centered on refinement, material honesty, and thoughtful detail.",
+      content: "<p>Quiet luxury represents a shift away from flashy, superficial design toward spaces that whisper elegance rather than shout. In the world of interior finishing, this means prioritizing natural materials, custom carpentry, and bespoke details that stand the test of time.</p><p>Key elements of this design philosophy include:</p><ul><li><strong>Material Honesty:</strong> Using genuine wood, solid stone, and high-quality textiles rather than artificial substitutes.</li><li><strong>Custom Joinery:</strong> Designing millwork that integrates seamlessly into the architecture, maximizing flow and functionality.</li><li><strong>Soft Textures:</strong> Combining neutral, warm plaster tones with bouclé, linen, and leather for touchable depth.</li></ul><p>Ultimately, a space designed with quiet luxury in mind feels calm, grounded, and inherently sophisticated.</p>",
+      imageUrl: asset("project1.jpg"),
+      category: "Trends",
+      author: "HAVI's Studio",
+      readTime: "4 min read",
+      published: true
+    },
+    {
+      slug: "choosing-perfect-material-palette",
+      title: "Choosing the Perfect Material Palette for Your Home",
+      excerpt: "A cohesive material palette binds a space together. Discover our expert guide on balancing wood tones, stone veining, and metallic accents.",
+      content: "<p>Selecting finishes can be overwhelming. The secret is to establish a core material hierarchy: a primary neutral base, a supporting natural texture, and a high-contrast focal accent.</p><p>First, start with your flooring. In a luxury interior, large-format porcelain tiles or engineering hardwood lay the visual foundation. Next, choose your main vertical accents, such as custom wood cladding or fluted stone plaster. Finally, introduce fine jewelry for the room: brushed brass or matte black hardware, custom metal trims, and lighting accents.</p><p>Ensure you view all samples in the space's actual lighting. Natural light during the morning differs significantly from warm LED downlights at night. Take your time to test samples side-by-side to guarantee harmony.</p>",
+      imageUrl: asset("project2.jpg"),
+      category: "Guides",
+      author: "Havi project lead",
+      readTime: "5 min read",
+      published: true
+    },
+    {
+      slug: "case-study-lumen-office-makeover",
+      title: "Case Study: Inside the Lumen Office Transformation",
+      excerpt: "Go behind the scenes of our latest commercial project where we transformed a dark, cramped space into a luminous corporate headquarters.",
+      content: "<p>Commercial interiors demand a balance between productivity, brand identity, and comfort. For the Lumen Office, our challenge was to build a space that fosters collaboration while maintaining dedicated zones for deep focus.</p><p>We started by knocking down non-load-bearing partitions to introduce a dynamic open-plan layout. To control sound, we integrated acoustic wood-slat panels along the main hallway. For lighting, we utilized recessed ceiling profiles that mimic natural daylight, reducing eye strain and elevating employee energy.</p><p>The result is a workplace that looks sleek, feels professional, and has boosted team collaboration by over 40%.</p>",
+      imageUrl: asset("project3.jpg"),
+      category: "Case Study",
+      author: "HAVI Design Team",
+      readTime: "6 min read",
+      published: true
+    }
+  ];
+
+  await prisma.blogPost.deleteMany();
+  await prisma.blogPost.createMany({
+    data: blogs.map((b, i) => ({ ...b, order: i })),
+  });
+  console.log("✓ Blogs seeded");
+
+  // ── Ads ────────────────────────────────────────────────
+  const ads = [
+    {
+      title: "Premium Italian Calacatta Porcelain Slab",
+      type: "Material Supply",
+      description: "Original 1200x2600mm porcelain slabs with high-definition Calacatta marble veining. Perfect for kitchen countertops, accent walls, and vanity splashbacks.",
+      price: "ETB 14,500 / sqm",
+      location: "Addis Ababa (Bole)",
+      contactPhone: "+251906147734",
+      contactEmail: "info@havisdesign.com",
+      imageUrl: asset("project1.jpg"),
+      features: ["Stain resistant", "Heat resistant", "15mm thickness"],
+      approved: true,
+      featured: true
+    },
+    {
+      title: "Heavy-Duty 350L Concrete Mixer Rental",
+      type: "Machinery Rental",
+      description: "Reliable diesel concrete mixer available for daily or weekly rent. Maintained in pristine condition, fuel-efficient, and delivered directly to your site.",
+      price: "ETB 3,500 / day",
+      location: "Addis Ababa (Gerji)",
+      contactPhone: "+251995270894",
+      contactEmail: "rentals@gnexuset.com",
+      imageUrl: asset("project2.jpg"),
+      features: ["Diesel engine", "350L capacity", "Delivery available"],
+      approved: true,
+      featured: false
+    },
+    {
+      title: "1-on-1 Interior Styling & Mood Board Consultancy",
+      type: "Interior Styling",
+      description: "Get custom mood boards, 3D floor plan layout recommendations, and a complete material shopping list tailored to your residential space.",
+      price: "ETB 25,000 / room",
+      location: "Addis Ababa (Megenagna)",
+      contactPhone: "+251906147734",
+      contactEmail: "info@havisdesign.com",
+      imageUrl: asset("project3.jpg"),
+      features: ["3D visualization", "Color consultation", "Material catalog"],
+      approved: true,
+      featured: true
+    },
+    {
+      title: "Professional Gypsum Board Ceiling Installation",
+      type: "Construction Contracting",
+      description: "High-end gypsum board ceiling works including suspended frames, cove light channels, and immaculate joint sanding. Clean work guaranteed.",
+      price: "ETB 1,800 / sqm",
+      location: "Addis Ababa (CMC)",
+      contactPhone: "+251906147734",
+      contactEmail: "info@havisdesign.com",
+      imageUrl: asset("project4.jpg"),
+      features: ["Premium boards used", "Integrated lighting prep", "Fast turnaround"],
+      approved: true,
+      featured: false
+    },
+    {
+      title: "Custom Modern Residential Villa Blueprint Design",
+      type: "Architectural Services",
+      description: "Complete architectural drawings, structural calculations, and mechanical/electrical/plumbing (MEP) schematics ready for municipality approval.",
+      price: "Negotiable",
+      location: "Addis Ababa (Kazanchis)",
+      contactPhone: "+251995270894",
+      contactEmail: "design@gnexuset.com",
+      imageUrl: asset("project5.jpg"),
+      features: ["3D rendering included", "Municipality prep", "Site inspections"],
+      approved: true,
+      featured: false
+    },
+    {
+      title: "Smart Home Automation Hub & App Integration",
+      type: "Smart Home Installation",
+      description: "Transform your home with smart switches, Alexa/Google Assistant hubs, security sensor integrations, and custom mood lighting scenes.",
+      price: "Starting at ETB 90,000",
+      location: "Addis Ababa (Bole Atlas)",
+      contactPhone: "+251995270894",
+      contactEmail: "smart@gnexuset.com",
+      imageUrl: asset("project6.jpg"),
+      features: ["Mobile app control", "Voice integration", "1-year warranty"],
+      approved: true,
+      featured: true
+    },
+    {
+      title: "Lush Garden Design & Real Grass Turf Laying",
+      type: "Landscaping & Gardens",
+      description: "Complete landscape landscaping, soil preparation, local plant selection, and high-quality grass turf installation. Automated sprinkler setup optional.",
+      price: "ETB 2,200 / sqm",
+      location: "Bishoftu",
+      contactPhone: "+251906147734",
+      contactEmail: "info@havisdesign.com",
+      imageUrl: asset("project8.jpg"),
+      features: ["Real turf grass", "Sprinkler setup", "Soil conditioning"],
+      approved: true,
+      featured: false
+    },
+    {
+      title: "PPR Heat-Fusion Piping System Fit-out",
+      type: "Plumbing & Piping",
+      description: "Certified plumbers for residential heat-fusion pipe layout. Pressure testing included to ensure 100% leak-proof kitchen and bathroom flow.",
+      price: "Call for Quote",
+      location: "Addis Ababa (Lebu)",
+      contactPhone: "+251906147734",
+      contactEmail: "info@havisdesign.com",
+      imageUrl: asset("project1.jpg"),
+      features: ["Certified technicians", "Pressure testing", "High-grade PPR"],
+      approved: true,
+      featured: false
+    },
+    {
+      title: "Three-Phase Distribution Board & Wiring",
+      type: "Electrical Installations",
+      description: "Professional industrial or residential three-phase wiring, circuit breaker installations, and surge protector fittings for full safety compliance.",
+      price: "Negotiable",
+      location: "Addis Ababa (Jeka)",
+      contactPhone: "+251995270894",
+      contactEmail: "tech@gnexuset.com",
+      imageUrl: asset("project2.jpg"),
+      features: ["Compliance certified", "Surge protection", "Load balanced"],
+      approved: true,
+      featured: false
+    },
+    {
+      title: "Custom Oak Veneer Modular Kitchen Cabinets",
+      type: "Custom Woodwork",
+      description: "Custom-built modular kitchen layouts with oak wood veneer finishes, soft-close Blum drawer sliders, and integrated kitchen appliance slots.",
+      price: "ETB 65,000 / meter",
+      location: "Addis Ababa (Bole)",
+      contactPhone: "+251906147734",
+      contactEmail: "info@havisdesign.com",
+      imageUrl: asset("project3.jpg"),
+      features: ["Modular design", "Soft-close hinges", "Oak wood veneer"],
+      approved: true,
+      featured: true
+    },
+    {
+      title: "Modern Matte Black Balcony Railings",
+      type: "Metal Fabrication",
+      description: "Durable electrostatically powder-coated steel railings with custom geometric patterns. Corrosion-proof welding ready for outdoor balconies.",
+      price: "ETB 8,500 / meter",
+      location: "Addis Ababa (Gotera)",
+      contactPhone: "+251906147734",
+      contactEmail: "info@havisdesign.com",
+      imageUrl: asset("project4.jpg"),
+      features: ["Powder-coated finish", "Corrosion resistant", "Custom designs"],
+      approved: true,
+      featured: false
+    }
+  ];
+
+  await prisma.adPost.deleteMany();
+  await prisma.adPost.createMany({
+    data: ads.map((a, i) => ({ ...a, order: i })),
+  });
+  console.log("✓ Ads seeded");
 }
 
 main()

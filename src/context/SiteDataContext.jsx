@@ -11,9 +11,24 @@ export const SiteDataProvider = ({ children }) => {
   const load = async () => {
     try {
       const site = await api.getSite();
-      // Merge so any missing setting group falls back to defaults.
+      // Deep-merge each settings group (hero/about/contact/marquee) so any field
+      // missing from the DB (e.g. social URLs) falls back to defaults instead of
+      // the whole group being replaced — otherwise icons "disappear" once the API
+      // resolves. Empty strings from the DB still override (intentional clears).
+      const groups = new Set([
+        ...Object.keys(DEFAULT_SITE.settings),
+        ...Object.keys(site.settings || {}),
+      ]);
+      const settings = {};
+      for (const key of groups) {
+        settings[key] = {
+          ...(DEFAULT_SITE.settings[key] || {}),
+          ...((site.settings || {})[key] || {}),
+        };
+      }
+
       setData({
-        settings: { ...DEFAULT_SITE.settings, ...(site.settings || {}) },
+        settings,
         services: site.services?.length ? site.services : DEFAULT_SITE.services,
         steps: site.steps?.length ? site.steps : DEFAULT_SITE.steps,
         projects: site.projects?.length ? site.projects : DEFAULT_SITE.projects,
