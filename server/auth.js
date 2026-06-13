@@ -3,9 +3,7 @@ import jwt from "jsonwebtoken";
 const SECRET = process.env.JWT_SECRET || "dev-secret";
 
 export const signToken = (admin) =>
-  jwt.sign({ id: admin.id, email: admin.email }, SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-  });
+  jwt.sign({ id: admin.id, email: admin.email }, SECRET);
 
 // Express middleware — rejects requests without a valid Bearer token.
 export const requireAuth = (req, res, next) => {

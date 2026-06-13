@@ -61,7 +61,6 @@ DIRECT_URL="postgresql://...direct..."
 
 # Auth
 JWT_SECRET="your-long-random-jwt-secret"
-JWT_EXPIRES_IN="7d"
 
 # Admin Seed Credentials
 ADMIN_EMAIL="admin@havisdesign.com"
