@@ -1,57 +1,63 @@
-import React from 'react';
-import {motion} from 'framer-motion'
-import { slideUpVariants , zoomInVariants } from './animation';
-import { allservices, planning } from '../export';
+import { motion } from "framer-motion";
+import Reveal from "../components/Reveal";
+import AnimatedHeading from "../components/AnimatedHeading";
+import { fadeUp, stagger } from "./animation";
+import { useSiteData } from "../context/SiteDataContext";
+import { getIcon } from "../lib/icons";
+
 const Working = () => {
-    return (
-        <div id='working' className='w-full bg-white'>
+  const { data } = useSiteData();
+  const steps = data.steps || [];
+
+  return (
+    <section id="process" className="shell py-24 lg:py-32">
+      <div className="mx-auto max-w-2xl text-center">
+        <Reveal variants={fadeUp}>
+          <span className="eyebrow mb-6 justify-center">How we work</span>
+        </Reveal>
+        <AnimatedHeading
+          text="A calm, considered {process.}"
+          className="display justify-center text-center text-4xl sm:text-5xl lg:text-[3.4rem]"
+        />
+        <Reveal variants={fadeUp} delay={0.1}>
+          <p className="mt-6 text-stone">
+            Four clear stages keep every project transparent, on time and true
+            to the original vision.
+          </p>
+        </Reveal>
+      </div>
+
+      <Reveal
+        variants={stagger}
+        className="relative mt-20 grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6"
+      >
+        <div className="absolute left-0 right-0 top-7 hidden h-px bg-line lg:block" />
+        {steps.map((item) => {
+          const Icon = getIcon(item.icon);
+          return (
             <motion.div
-            initial="hidden"
-            whileInView="visible"
-            variants={slideUpVariants}
-            className='lg:w-[80%] w-[90%] m-auto py-[60px] flex flex-col justify-between items-center gap-[20px]'
-
+              key={item.id || item.step}
+              variants={fadeUp}
+              className="relative flex flex-col items-center text-center lg:items-start lg:text-left"
             >
-                <motion.h3
-                variants={slideUpVariants}
-                className='text-yellow-500 text-2xl uppercase'
-                >
-                    Step by Step
-                </motion.h3>
-                <motion.h2
-                variants={slideUpVariants}
-                className='uppercase text-black text-5xl font-bold text-center'
-                >How It's Working</motion.h2>
-                <motion.div
-                variants={zoomInVariants}
-                className='w-[120px] h-[6px] bg-yellow-500'
-                >
-                </motion.div>
-
-                <motion.div
-                initial='hidden'
-                whileInView='visible'
-                variants={zoomInVariants}
-                className='w-full grid lg:grid-cols-4 grid-cols-1 justify-center
-                gap-[20px] items-start mt-[30px]'
-                >
-                    {
-                        planning.map((item,index) =>(
-                            <div key={index} className='flex flex-col justify-center items-center gap-5 border-2 border-yellow-500 rounded-md p-6'>
-                                <div>
-                                <item.icon className='size-[80px] bg-yellow-500 hover:bg-black hover:fill-white p-4 rounded-full cursor-pointer'/>
-                                </div>
-                                <h1 className='text-2xl font-bold uppercase'>{item.title}</h1>
-                                <p className='text-[20px] text-center text-gray-600'>{item.about}</p>
-                                </div>
-                        ))
-                    }
-
-                </motion.div>
-
+              <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-paper">
+                <Icon size={22} />
+              </div>
+              <span className="mt-6 font-display text-sm tracking-widest text-accent-deep">
+                {item.step}
+              </span>
+              <h3 className="mt-1 font-display text-2xl tracking-tightest">
+                {item.title}
+              </h3>
+              <p className="mt-3 max-w-xs leading-relaxed text-stone">
+                {item.about}
+              </p>
             </motion.div>
-        </div>
-    );
+          );
+        })}
+      </Reveal>
+    </section>
+  );
 };
 
 export default Working;

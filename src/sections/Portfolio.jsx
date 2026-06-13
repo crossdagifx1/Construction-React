@@ -1,61 +1,84 @@
-import React from 'react';
-import project1 from '../assets/project1.jpg'
-import project2 from '../assets/project2.jpg'
-import project3 from '../assets/project3.jpg'
-import project4 from '../assets/project4.jpg'
-import project5 from '../assets/project5.jpg'
-import project6 from '../assets/project6.jpg'
-import project7 from '../assets/project7.jpg'
-import project8 from '../assets/project8.jpg'
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { FiArrowUpRight } from "react-icons/fi";
+import Reveal from "../components/Reveal";
+import AnimatedHeading from "../components/AnimatedHeading";
+import { fadeUp, stagger } from "./animation";
+import { useSiteData } from "../context/SiteDataContext";
 
-import {motion} from 'framer-motion'
-import { slideUpVariants , zoomInVariants } from './animation';
+// `limit` lets the home page show a teaser; the portfolio page shows all.
+const Portfolio = ({ limit, showCta = true }) => {
+  const { data } = useSiteData();
+  const all = data.projects || [];
+  const projects = limit ? all.slice(0, limit) : all;
 
-const Portfolio = () => {
-    return (
-        <div id='projects' className='w-full'>
-            <motion.div
-            initial="hidden"
-            whileInView="visible"
-            variants={slideUpVariants}
-            className='lg:w-[80%] w-[90%] m-auto py-[60px] flex flex-col justify-between items-center gap-[20px]'
-
-            >
-                <motion.h3
-                variants={slideUpVariants}
-                className='text-yellow-500 text-2xl uppercase'
-                >
-                    portfolio
-                </motion.h3>
-                <motion.h2
-                variants={slideUpVariants}
-                className='uppercase text-white text-5xl font-bold text-center'
-                >Our Best Projects</motion.h2>
-                <motion.div
-                variants={zoomInVariants}
-                className='w-[120px] h-[6px] bg-yellow-500'
-                >
-                </motion.div>
-                <motion.div
-                initial='hidden'
-                whileInView='visible'
-                variants={zoomInVariants}
-                className='w-full m-auto grid lg:grid-cols-4 grid-cols-1'
-                >
-                    <img src={project1} alt="" className='h-[250px] w-full'/>
-                    <img src={project2} alt="" className='h-[250px] w-full'/>
-                    <img src={project3} alt="" className='h-[250px] w-full'/>
-                    <img src={project4} alt="" className='h-[250px] w-full'/>
-                    <img src={project5} alt="" className='h-[250px] w-full'/>
-                    <img src={project6} alt="" className='h-[250px] w-full'/>
-                    <img src={project7} alt="" className='h-[250px] w-full'/>
-                    <img src={project8} alt="" className='h-[250px] w-full'/>
-                </motion.div>
-
-            </motion.div>
-            
+  return (
+    <section id="projects" className="bg-ink py-24 text-paper lg:py-32">
+      <div className="shell">
+        <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+          <div className="max-w-2xl">
+            <Reveal variants={fadeUp}>
+              <span className="eyebrow mb-6 text-accent">Selected work</span>
+            </Reveal>
+            <AnimatedHeading
+              text="Spaces we're {proud} of."
+              className="display text-4xl text-paper sm:text-5xl lg:text-[3.4rem]"
+            />
+          </div>
+          {showCta && (
+            <Reveal variants={fadeUp} delay={0.1}>
+              <Link
+                to="/portfolio"
+                className="group inline-flex items-center gap-2 text-sm font-medium text-paper/80 transition-colors hover:text-paper"
+              >
+                View all projects
+                <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </Reveal>
+          )}
         </div>
-    );
+
+        <Reveal
+          variants={stagger}
+          className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {projects.map((p) => (
+            <motion.article
+              key={p.id || p.title}
+              variants={fadeUp}
+              className={`group relative overflow-hidden rounded-2xl ${
+                p.wide ? "lg:col-span-2" : ""
+              }`}
+            >
+              <Link to={`/portfolio/${p.slug || p.id}`} className="block">
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={p.imageUrl}
+                    alt={p.title}
+                    className="h-full w-full object-cover transition-transform duration-[1.4s] ease-smooth group-hover:scale-110"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-90" />
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6">
+                  <div className="translate-y-2 transition-transform duration-500 ease-smooth group-hover:translate-y-0">
+                    <p className="text-xs uppercase tracking-widest text-accent">
+                      {p.tag}
+                    </p>
+                    <h3 className="mt-1 font-display text-2xl tracking-tightest text-paper">
+                      {p.title}
+                    </h3>
+                  </div>
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-paper opacity-0 transition-all duration-500 ease-smooth group-hover:bg-paper group-hover:text-ink group-hover:opacity-100">
+                    <FiArrowUpRight size={20} />
+                  </span>
+                </div>
+              </Link>
+            </motion.article>
+          ))}
+        </Reveal>
+      </div>
+    </section>
+  );
 };
 
 export default Portfolio;

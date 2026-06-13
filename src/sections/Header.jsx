@@ -1,78 +1,127 @@
-import React, { useState } from 'react';
-import { FaXmark, FaBars } from 'react-icons/fa6';
-import { Link } from 'react-scroll';
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiArrowUpRight, FiMenu, FiX } from "react-icons/fi";
+import logo from "../assets/HAVI LOGO.png";
+
+const navItems = [
+  { label: "Home", to: "/" },
+  { label: "About", to: "/about" },
+  { label: "Services", to: "/#services" },
+  { label: "Work", to: "/portfolio" },
+  { label: "Contact", to: "/contact" },
+];
 
 const Header = () => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  const isHome = pathname === "/";
 
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-    const closeMenu = () => {
-        setIsMenuOpen(false);
-    };
+  useEffect(() => setOpen(false), [pathname]);
 
-    const navItem = [
-        { link: 'Home', path: 'home' },
-        { link: 'About', path: 'about' },
-        { link: 'Services', path: 'services' },
-        { link: 'Project', path: 'projects' },
-        { link: 'Contact', path: 'contact' },
-    ];
+  // Solid header everywhere except the top of the home hero.
+  const solid = scrolled || !isHome;
 
-    return (
-        <nav className='w-full flex bg-white justify-between items-center gap-1 lg:px-16 px-6 py-4 top-0 z-50'>
-            <h1 className='text-black md:text-4xl text-3xl font-bold font-rubik'>
-                MS <span className='text-yellow-500 italic'>Structure</span>
-            </h1>
-            {/* Desktop Menu */}
-            <ul className='lg:flex justify-normal items-center gap-6 hidden'>
-                {navItem.map((item, index) => (
-                    <li key={index}>
-                        <Link
-                            to={item.path}
-                            className='text-black uppercase font-bold cursor-pointer p-3 rounded-full hover:bg-yellow-500 hover:text-black text-[16px]'
-                            spy={true}
-                            offset={-100}
-                            smooth={true}
-                        >
-                            {item.link}
-                        </Link>
-                    </li>
-                ))}
+  return (
+    <motion.header
+      initial={{ y: -90 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-smooth ${
+        solid
+          ? "bg-paper/85 backdrop-blur-md border-b border-line py-3"
+          : "bg-transparent py-5"
+      }`}
+    >
+      <nav className="shell flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3 group">
+          <img
+            src={logo}
+            alt="HAVI'S DESIGN"
+            className="h-11 w-11 rounded-full object-cover transition-transform duration-500 group-hover:rotate-[20deg]"
+          />
+          <span className="hidden leading-none sm:block">
+            <span className="block font-display text-lg tracking-tightest">
+              HAVI'S DESIGN
+            </span>
+            <span className="block text-[10px] uppercase tracking-widest text-stone">
+              Interior & Finishing
+            </span>
+          </span>
+        </Link>
+
+        <ul className="hidden items-center gap-9 lg:flex">
+          {navItems.map((item) => (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                className="link-underline text-sm font-medium text-ink/80 transition-colors hover:text-ink"
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex items-center gap-3">
+          <Link
+            to="/contact"
+            className="group hidden items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-paper transition-all duration-500 ease-smooth hover:bg-accent-deep md:inline-flex"
+          >
+            Reach us
+            <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="grid h-11 w-11 place-items-center rounded-full border border-line text-ink lg:hidden"
+            aria-label="Toggle menu"
+          >
+            {open ? <FiX size={20} /> : <FiMenu size={20} />}
+          </button>
+        </div>
+      </nav>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden border-t border-line bg-paper/95 backdrop-blur-md lg:hidden"
+          >
+            <ul className="shell flex flex-col py-4">
+              {navItems.map((item, i) => (
+                <motion.li
+                  key={item.to}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * i }}
+                  className="border-b border-line/70 last:border-0"
+                >
+                  <Link
+                    to={item.to}
+                    className="block py-4 text-left font-display text-2xl tracking-tightest"
+                  >
+                    {item.label}
+                  </Link>
+                </motion.li>
+              ))}
             </ul>
-            <button className='bg-yellow-500 hover:bg-black text-black hover:text-white px-10 py-3 rounded-full font-semibold transform hover:scale-105 transition-transform duration-300 cursor-pointer md:flex hidden'>REACH US</button>
-
-            {/* Mobile Menu Toggle Icon */}
-            <div className='flex justify-between items-center lg:hidden mt-3' onClick={toggleMenu}>
-                {isMenuOpen ? (
-                    <FaXmark className='text-yellow-500 text-3xl cursor-pointer' />
-                ) : (
-                    <FaBars className='text-yellow-500 text-3xl cursor-pointer' />
-                )}
-            </div>
-
-            {/* Mobile Menu */}
-            <div className={`${isMenuOpen ? 'flex' : 'hidden'} w-full h-fit bg-yellow-500 p-4 absolute top-[72px] left-0`} onClick={closeMenu}>
-                <ul className='flex flex-col justify-center items-center gap-2 w-full'>
-                    {navItem.map((item, index) => (
-                        <li key={index}>
-                            <Link
-                                to={item.path}
-                                className='text-black uppercase font-semibold cursor-pointer p-2 rounded-lg hover:bg-black hover:text-white w-full text-center'
-                                spy={true}
-                                offset={-100}
-                                smooth={true}
-                            >
-                                {item.link}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </nav>
-    );
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
+  );
 };
 
 export default Header;

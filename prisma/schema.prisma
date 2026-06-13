@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}
+
+/// Flexible key/JSON store for grouped content: "hero", "about", "contact", "marquee".
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id        String   @id @default(cuid())
+  order     Int      @default(0)
+  icon      String   @default("FiPenTool")
+  title     String
+  about     String
+  createdAt DateTime @default(now())
+}
+
+model ProcessStep {
+  id        String   @id @default(cuid())
+  order     Int      @default(0)
+  step      String
+  icon      String   @default("FiSearch")
+  title     String
+  about     String
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  order       Int      @default(0)
+  slug        String?
+  title       String
+  tag         String
+  imageUrl    String
+  wide        Boolean  @default(false)
+  // Detail-page content
+  description String?
+  year        String?
+  location    String?
+  area        String?
+  beforeUrl   String?
+  afterUrl    String?
+  gallery     Json?
+  createdAt   DateTime @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  order     Int      @default(0)
+  name      String
+  post      String
+  quote     String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

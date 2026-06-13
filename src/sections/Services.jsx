@@ -1,62 +1,66 @@
-import React from 'react';
-import {motion} from 'framer-motion'
-import { slideUpVariants , zoomInVariants } from './animation';
-import { allservices } from '../export';
+import { motion } from "framer-motion";
+import Reveal from "../components/Reveal";
+import AnimatedHeading from "../components/AnimatedHeading";
+import { fadeUp, stagger } from "./animation";
+import { useSiteData } from "../context/SiteDataContext";
+import { getIcon } from "../lib/icons";
 
 const Services = () => {
-    return (
-        <div id='services' className='w-full bg-white'>
-            <motion.div
-            initial="hidden"
-            whileInView="visible"
-            variants={slideUpVariants}
-            className='lg:w-[80%] w-[90%] m-auto py-[60px] flex flex-col justify-between items-center gap-[20px]'
+  const { data } = useSiteData();
+  const services = data.services || [];
 
-            >
-                <motion.h3
-                variants={slideUpVariants}
-                className='text-yellow-500 text-2xl uppercase'
-                >
-                    Special Offer
-                </motion.h3>
-                <motion.h2
-                variants={slideUpVariants}
-                className='uppercase text-black text-5xl font-bold text-center'
-                >Our Best Services</motion.h2>
-                <motion.div
-                variants={zoomInVariants}
-                className='w-[120px] h-[6px] bg-yellow-500'
-                >
-                </motion.div>
-                <motion.div
-                initial='hidden'
-                whileInView='visible'
-                variants={zoomInVariants}
-                className='w-full grid lg:grid-cols-3 grid-cols-1 justify-center
-                gap-[20px] items-start mt-[30px]'
-                >
-                    {
-                        allservices.map((service, index) => (
-                            <motion.div
-                            key={index}
-                            variants={zoomInVariants}
-                            className='flex justify-center items-start gap-5 p-8'
-                            >
-                                    <img src={service.icon} alt='icon' className='w-[70px] border-2 border-yellow-500 hover:bg-yellow-500 rounded-lg p-2'/>
-                                    <div className='flex flex-col justify-center items-start gap-3'>
-                                        <h3 className='text-xl font-bold text-black'>{service.title}</h3>
-                                        <p className='text-[18px]'>{service.about}</p>
-                                    </div>
-
-                            </motion.div>
-                        ))
-                    }
-
-                </motion.div>
-            </motion.div>
-
+  return (
+    <section id="services" className="bg-sand py-24 lg:py-32">
+      <div className="shell">
+        <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+          <div className="max-w-2xl">
+            <Reveal variants={fadeUp}>
+              <span className="eyebrow mb-6">What we do</span>
+            </Reveal>
+            <AnimatedHeading
+              text="Services built around {your} space."
+              className="display text-4xl sm:text-5xl lg:text-[3.4rem]"
+            />
+          </div>
+          <Reveal variants={fadeUp} delay={0.1}>
+            <p className="max-w-sm text-stone">
+              A complete studio offering — from first sketch to final styling —
+              under one roof.
+            </p>
+          </Reveal>
         </div>
-    );
+
+        <Reveal
+          variants={stagger}
+          className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {services.map((service, index) => {
+            const Icon = getIcon(service.icon);
+            return (
+              <motion.article
+                key={service.id || index}
+                variants={fadeUp}
+                className="group relative bg-paper p-9 transition-colors duration-500 ease-smooth hover:bg-ink"
+              >
+                <span className="font-display text-sm text-stone transition-colors duration-500 group-hover:text-paper/50">
+                  0{index + 1}
+                </span>
+                <div className="mt-7 flex h-14 w-14 items-center justify-center rounded-full border border-line text-ink transition-all duration-500 ease-smooth group-hover:border-accent group-hover:bg-accent group-hover:text-ink">
+                  <Icon size={24} />
+                </div>
+                <h3 className="mt-7 font-display text-2xl tracking-tightest text-ink transition-colors duration-500 group-hover:text-paper">
+                  {service.title}
+                </h3>
+                <p className="mt-3 leading-relaxed text-stone transition-colors duration-500 group-hover:text-paper/70">
+                  {service.about}
+                </p>
+              </motion.article>
+            );
+          })}
+        </Reveal>
+      </div>
+    </section>
+  );
 };
 
 export default Services;

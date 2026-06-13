@@ -2,12 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-*{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: theme("colors.paper");
+    color: theme("colors.ink");
+    font-family: theme("fontFamily.sans");
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: theme("colors.ink");
+    color: theme("colors.paper");
+  }
 }
 
-body{
-  background-color: rgb(45,42,42);
+@layer components {
+  .shell {
+    @apply max-w-edge mx-auto px-6 md:px-10 lg:px-16;
+  }
+
+  /* Small uppercase eyebrow label used above section titles */
+  .eyebrow {
+    @apply inline-flex items-center gap-3 text-xs font-medium uppercase tracking-widest text-accent-deep;
+  }
+
+  .eyebrow::before {
+    content: "";
+    @apply h-px w-8 bg-accent;
+  }
+
+  .display {
+    @apply font-display font-light tracking-tightest leading-[1.02];
+  }
+
+  /* Underline-on-hover link used in nav and footer */
+  .link-underline {
+    @apply relative;
+  }
+  .link-underline::after {
+    content: "";
+    @apply absolute left-0 -bottom-1 h-px w-full origin-right scale-x-0 bg-current transition-transform duration-500 ease-smooth;
+  }
+  .link-underline:hover::after {
+    @apply origin-left scale-x-100;
+  }
+}
+
+/* Thin custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: theme("colors.paper");
+}
+::-webkit-scrollbar-thumb {
+  background: #cfc7b8;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: theme("colors.accent");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

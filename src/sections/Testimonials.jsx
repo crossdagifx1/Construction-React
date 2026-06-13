@@ -1,61 +1,63 @@
-import React from 'react';
-import {motion} from 'framer-motion'
-import { slideUpVariants , zoomInVariants } from './animation';
-import {clients } from '../export';
+import { motion } from "framer-motion";
+import Reveal from "../components/Reveal";
+import AnimatedHeading from "../components/AnimatedHeading";
+import { fadeUp, stagger } from "./animation";
+import { useSiteData } from "../context/SiteDataContext";
 
-const Testmonials = () => {
-    return (
-        <div id='clients' className='w-full'>
-            <motion.div
-            initial="hidden"
-            whileInView="visible"
-            variants={slideUpVariants}
-            className='lg:w-[80%] w-[90%] m-auto py-[60px] flex flex-col justify-between items-center gap-[20px]'
+const Testimonials = () => {
+  const { data } = useSiteData();
+  const clients = data.testimonials || [];
 
-            >
-                <motion.h3
-                variants={slideUpVariants}
-                className='text-yellow-500 text-2xl uppercase'
-                >Testimonials
-                </motion.h3>
-                <motion.h2
-                variants={slideUpVariants}
-                className='uppercase text-white text-5xl font-bold text-center'
-                >WHAT THEY SAY ABOUT US</motion.h2>
-                <motion.div
-                variants={zoomInVariants}
-                className='w-[120px] h-[6px] bg-yellow-500'
-                >
-                </motion.div>
+  return (
+    <section id="clients" className="shell py-24 lg:py-32">
+      <div className="mx-auto max-w-2xl text-center">
+        <Reveal variants={fadeUp}>
+          <span className="eyebrow mb-6 justify-center">Kind words</span>
+        </Reveal>
+        <AnimatedHeading
+          text="What our {clients} say."
+          className="display justify-center text-center text-4xl sm:text-5xl lg:text-[3.4rem]"
+        />
+      </div>
 
-                <motion.div
-                initial='hidden'
-                whileInView='visible'
-                variants={zoomInVariants}
-                className='lg:w-full w-[90%] grid lg:grid-cols-3 grid-cols-1 justify-center
-                gap-8 items-start mt-[30px]'
-                >
-                    {
-                        clients.map((client, index) => (
-                            <div key={index} className='flex flex-col justify-center items-center'>
-                                <div className='border-2 border-white hover:bg-yellow-500 pb-[100px] p-[30px]'>
-                                    <p className='text-white text-lg text-center italic'>{client.about}</p>
-                                </div>
-                                <div className='flex flex-col justify-center items-center gap-[5px]'>
-                                    <img src={client.image} alt={client.name} className='mt-[-50px]'/>
-                                    <h3 className='uppercase text-2xl font-bold text-white'>{client.name}</h3>
-                                    <h4 className='text-xl text-yellow-500'>{client.post}</h4>
-
-                                </div>
-                            </div>
-                        ))  
-                    }
-
-                </motion.div>
-
-            </motion.div>
-        </div>
-    );
+      <Reveal
+        variants={stagger}
+        className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3"
+      >
+        {clients.map((client) => (
+          <motion.figure
+            key={client.id || client.name}
+            variants={fadeUp}
+            className="flex flex-col rounded-3xl border border-line bg-paper p-8 transition-shadow duration-500 hover:shadow-[0_24px_60px_-30px_rgba(0,0,0,0.35)]"
+          >
+            <span className="font-display text-6xl leading-none text-accent/40">
+              &ldquo;
+            </span>
+            <blockquote className="-mt-4 flex-1 text-lg leading-relaxed text-ink">
+              {client.quote}
+            </blockquote>
+            <figcaption className="mt-8 flex items-center gap-4 border-t border-line pt-6">
+              {client.imageUrl && (
+                <img
+                  src={client.imageUrl}
+                  alt={client.name}
+                  className="h-12 w-12 rounded-full object-cover"
+                />
+              )}
+              <div>
+                <p className="font-display text-lg tracking-tightest">
+                  {client.name}
+                </p>
+                <p className="text-xs uppercase tracking-widest text-stone">
+                  {client.post}
+                </p>
+              </div>
+            </figcaption>
+          </motion.figure>
+        ))}
+      </Reveal>
+    </section>
+  );
 };
 
-export default Testmonials;
+export default Testimonials;

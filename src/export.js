@@ -1,14 +1,15 @@
-import building from "../src/assets/building.svg";
-import construction from "../src/assets/construction.svg";
-import design from "../src/assets/design.svg";
-import document from "../src/assets/document.svg";
-import paint from "../src/assets/paint.svg";
-import support from "../src/assets/support.svg";
-
-import { IoDocumentTextSharp } from "react-icons/io5";
-import { MdOutlineDesignServices } from "react-icons/md";
-import { FaRegBuilding } from "react-icons/fa";
-import { FaSitemap } from "react-icons/fa";
+import {
+  FiPenTool,
+  FiGrid,
+  FiLayers,
+  FiHome,
+  FiTool,
+  FiHeadphones,
+  FiSearch,
+  FiCompass,
+  FiBox,
+  FiCheckCircle,
+} from "react-icons/fi";
 
 import client1 from "../src/assets/client1.png";
 import client2 from "../src/assets/client2.png";
@@ -16,93 +17,94 @@ import client3 from "../src/assets/client3.png";
 
 export const allservices = [
   {
-    icon: building,
-    title: "Building Renovation",
-    about:
-      "Expert renovation services to upgrade and modernize existing structures, enhancing functionality and aesthetic appeal.",
-  },
-  {
-    icon: construction,
-    title: "Construction Services",
-    about:
-      "Comprehensive construction solutions, from project planning to execution, ensuring high-quality and timely completion.",
-  },
-  {
-    icon: design,
-    title: "Design & Planning",
-    about:
-      "Professional design and planning services to create efficient and innovative spaces tailored to client needs.",
-  },
-  {
-    icon: document,
-    title: "Documentation",
-    about:
-      "Detailed documentation for all project stages, providing clear records and ensuring compliance with industry standards.",
-  },
-  {
-    icon: paint,
+    icon: FiPenTool,
     title: "Interior Design",
     about:
-      "Creative interior design services to craft comfortable and visually stunning spaces that reflect individual style.",
+      "Bespoke interiors that balance comfort, elegance and function — tailored to how you live and work.",
   },
   {
-    icon: support,
-    title: "Customer Support",
+    icon: FiGrid,
+    title: "Space Planning",
     about:
-      "Dedicated customer support to assist with inquiries, provide updates, and ensure a smooth project experience from start to finish.",
+      "Considered layouts that make every square metre purposeful, with light and flow at the centre.",
+  },
+  {
+    icon: FiBox,
+    title: "Custom Furniture",
+    about:
+      "Made-to-measure joinery and furniture crafted with skilled artisans and refined materials.",
+  },
+  {
+    icon: FiLayers,
+    title: "Material Selection",
+    about:
+      "Curated palettes of finishes, textures and tones sourced from top-tier suppliers.",
+  },
+  {
+    icon: FiTool,
+    title: "High-end Finishing",
+    about:
+      "Meticulous detailing and finishing that elevate a space into something timeless.",
+  },
+  {
+    icon: FiHome,
+    title: "Renovation & Fit-out",
+    about:
+      "Turnkey renovation and fit-out, managed end-to-end for a seamless, on-time delivery.",
   },
 ];
-
 
 export const planning = [
   {
-    icon: IoDocumentTextSharp,
-    title: "Planning",
+    icon: FiSearch,
+    step: "01",
+    title: "Discover",
     about:
-      "Detailed research and strategizing to establish project goals, requirements, and timelines for a successful outcome.",
+      "We listen, measure and research — establishing goals, requirements and a clear brief.",
   },
   {
-    icon: MdOutlineDesignServices,
+    icon: FiCompass,
+    step: "02",
     title: "Design",
     about:
-      "Crafting user-centered designs, wireframes, and mockups to create a visually appealing and functional interface.",
+      "Concepts, mood boards and 3D visuals that bring a considered, user-centred vision to life.",
   },
   {
-    icon: FaRegBuilding,
-    title: "Building",
+    icon: FiTool,
+    step: "03",
+    title: "Build",
     about:
-      "Developing the core functionalities and implementing features with clean, efficient code to bring the design to life.",
+      "Skilled artisans execute with precision, keeping craft and detail at the forefront.",
   },
   {
-    icon: FaSitemap,
+    icon: FiCheckCircle,
+    step: "04",
     title: "Finish",
     about:
-      "Thorough testing, debugging, and deployment to ensure the project meets all specifications and functions seamlessly.",
+      "Styling, snagging and handover — a flawless space, delivered and ready to enjoy.",
   },
 ];
-
 
 export const clients = [
   {
     image: client1,
     name: "Alex Parker",
-    about:
-      "An experienced constructor known for meticulous planning and project management, ensuring every construction project meets quality standards and deadlines.",
-    post: "Constructor",
+    post: "Residential Client",
+    quote:
+      "HAVI'S DESIGN reimagined our home with a calm, timeless palette. Every detail was considered and the finish is impeccable.",
   },
   {
     image: client2,
     name: "Drew James",
-    about:
-      "A visionary architect who blends modern design with sustainable practices to create innovative, environmentally friendly buildings.",
-    post: "Architect",
+    post: "Hospitality Director",
+    quote:
+      "From planning to handover the process was seamless. The space feels elevated yet effortless — exactly what we wanted.",
   },
   {
     image: client3,
     name: "Sam Peterson",
-    about:
-      "A skilled builder with a strong focus on craftsmanship and attention to detail, dedicated to bringing architectural designs to life with precision.",
-    post: "Builder",
+    post: "Office Owner",
+    quote:
+      "Craftsmanship you can feel. The team balanced function and beauty and delivered ahead of schedule.",
   },
 ];
-
