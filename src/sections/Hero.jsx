@@ -148,14 +148,14 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1.2, ease: EASE }}
-            className="relative mx-auto flex max-w-sm items-end justify-center"
+            className="relative mx-auto flex max-w-md items-end justify-center"
           >
             <div className="absolute bottom-0 h-[78%] w-full rounded-t-[140px] bg-sand" />
             <motion.img
               style={{ y: imgY }}
               src={hero.image}
               alt="HAVI'S DESIGN project lead on site"
-              className="relative z-10 max-h-[72svh] w-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
+              className="relative z-10 max-h-[82svh] w-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
             />
           </motion.div>
 
