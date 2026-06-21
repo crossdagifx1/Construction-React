@@ -1,6 +1,7 @@
 import CollectionEditor from "../../components/admin/CollectionEditor";
 import { TextField, TextArea, ImageInput, Label } from "../../components/admin/ui";
 import { slugify } from "../../lib/slug";
+import MDEditor from "@uiw/react-md-editor";
 
 const BlogsEditor = () => (
   <CollectionEditor
@@ -62,7 +63,19 @@ const BlogsEditor = () => (
         </div>
         <TextField label="Author" value={d.author} onChange={(v) => set({ author: v })} />
         <TextArea label="Excerpt / Short Summary" value={d.excerpt} onChange={(v) => set({ excerpt: v })} />
-        <TextArea label="Article Content (HTML/Paragraphs)" value={d.content} onChange={(v) => set({ content: v })} />
+        
+        <div>
+          <Label>Article Content (Markdown)</Label>
+          <div data-color-mode="light" className="overflow-hidden rounded-lg border border-line">
+            <MDEditor
+              value={d.content || ""}
+              onChange={(v) => set({ content: v })}
+              height={350}
+              preview="edit"
+            />
+          </div>
+        </div>
+
         <ImageInput label="Cover Image" value={d.imageUrl} onChange={(v) => set({ imageUrl: v })} />
         
         <div className="flex items-center gap-2 pt-2">
@@ -83,3 +96,4 @@ const BlogsEditor = () => (
 );
 
 export default BlogsEditor;
+

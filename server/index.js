@@ -10,6 +10,9 @@ import settingsRoutes from "./routes/settings.js";
 import contactRoutes from "./routes/contact.js";
 import uploadRoutes from "./routes/upload.js";
 import crudRouter from "./routes/crud.js";
+import bookingRoutes from "./routes/booking.js";
+import chatRoutes from "./routes/chat.js";
+import notificationRoutes from "./routes/notifications.js";
 import { isStorageConfigured } from "./supabase.js";
 
 const app = express();
@@ -26,6 +29,9 @@ app.use("/api/site", siteRoutes);
 app.use("/api/site/blogs", blogRoutes);
 app.use("/api/site/ads", adRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/admin/notifications", notificationRoutes);
 
 // Admin content
 app.use("/api/admin/settings", settingsRoutes);

@@ -114,3 +114,51 @@ model AdPost {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+// ── Booking System ─────────────────────────────────────────────────────────
+
+model Booking {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  service   String   // "Interior Design" | "Renovation" | "Consultation" | "Other"
+  date      DateTime
+  timeSlot  String   // e.g. "09:00"
+  message   String?
+  status    String   @default("pending") // pending | confirmed | cancelled | completed
+  adminNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── AI Chatbot ─────────────────────────────────────────────────────────────
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  sessionId String        @unique
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  session   ChatSession @relation(fields: [sessionId], references: [id])
+  sessionId String
+  role      String      // "user" | "assistant"
+  content   String
+  createdAt DateTime    @default(now())
+}
+
+// ── Admin Notifications ────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // "booking" | "message" | "chat"
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  refId     String?
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,271 @@
+.havi-chat-widget {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Floating button */
+.havi-chat-fab {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8a96e 0%, #a07840 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(200,169,110,0.45), 0 2px 8px rgba(0,0,0,0.25);
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.havi-chat-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 40px rgba(200,169,110,0.6), 0 2px 8px rgba(0,0,0,0.3);
+}
+.havi-chat-fab-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(200,169,110,0.5);
+  animation: haviPulse 2s ease-out infinite;
+}
+@keyframes haviPulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.havi-chat-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #0f0e0d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Chat panel */
+.havi-chat-panel {
+  position: absolute;
+  bottom: 76px;
+  right: 0;
+  width: 360px;
+  max-height: 540px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15,14,13,0.95);
+  border: 1px solid rgba(200,169,110,0.25);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.1);
+  backdrop-filter: blur(20px);
+}
+@media (max-width: 420px) {
+  .havi-chat-panel {
+    width: calc(100vw - 24px);
+    right: -4px;
+  }
+}
+
+/* Header */
+.havi-chat-header {
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(200,169,110,0.18) 0%, rgba(160,120,64,0.1) 100%);
+  border-bottom: 1px solid rgba(200,169,110,0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.havi-chat-header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8a96e, #a07840);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.havi-chat-header-info { flex: 1; min-width: 0; }
+.havi-chat-header-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f5f0ea;
+  line-height: 1.2;
+}
+.havi-chat-header-status {
+  font-size: 11px;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.havi-chat-header-status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: inline-block;
+}
+.havi-chat-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(245,240,234,0.5);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+.havi-chat-close:hover { color: #f5f0ea; }
+
+/* Messages */
+.havi-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200,169,110,0.2) transparent;
+}
+.havi-chat-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.havi-chat-msg--user { flex-direction: row-reverse; }
+.havi-chat-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8a96e, #a07840);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.havi-chat-bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  word-wrap: break-word;
+}
+.havi-chat-bubble--ai {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #e8e2da;
+  border-bottom-left-radius: 4px;
+}
+.havi-chat-bubble--user {
+  background: linear-gradient(135deg, #c8a96e, #a07840);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.havi-chat-bubble--error {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+}
+
+/* Typing */
+.havi-chat-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+.havi-chat-typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c8a96e;
+  animation: haviDot 1.4s infinite;
+}
+.havi-chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+.havi-chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes haviDot {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* Quick actions */
+.havi-chat-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 12px;
+}
+.havi-chat-quick-btn {
+  font-size: 11.5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(200,169,110,0.35);
+  background: rgba(200,169,110,0.08);
+  color: #c8a96e;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.havi-chat-quick-btn:hover {
+  background: rgba(200,169,110,0.2);
+  border-color: #c8a96e;
+}
+
+/* Input area */
+.havi-chat-input-area {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.3);
+}
+.havi-chat-input {
+  flex: 1;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 9px 16px;
+  font-size: 13.5px;
+  color: #f5f0ea;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  resize: none;
+  max-height: 80px;
+}
+.havi-chat-input::placeholder { color: rgba(245,240,234,0.3); }
+.havi-chat-input:focus { border-color: rgba(200,169,110,0.5); }
+.havi-chat-send {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #c8a96e, #a07840);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.havi-chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+.havi-chat-send:not(:disabled):hover { transform: scale(1.1); }

@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import PublicLayout from "./components/PublicLayout";
 import ScrollToTop from "./components/ScrollToTop";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChatWidget from "./components/chatbot/ChatWidget";
 
 import Home from "./pages/Home";
 import AboutPage from "./pages/AboutPage";
@@ -11,6 +12,7 @@ import ContactPage from "./pages/ContactPage";
 import BlogPage from "./pages/BlogPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
 import AdListingPage from "./pages/AdListingPage";
+import BookingPage from "./pages/BookingPage";
 import NotFound from "./pages/NotFound";
 
 import Login from "./pages/admin/Login";
@@ -26,6 +28,9 @@ import TestimonialsEditor from "./pages/admin/TestimonialsEditor";
 import BlogsEditor from "./pages/admin/BlogsEditor";
 import AdsEditor from "./pages/admin/AdsEditor";
 import Messages from "./pages/admin/Messages";
+import BookingsManager from "./pages/admin/BookingsManager";
+import ChatLogs from "./pages/admin/ChatLogs";
+import NotificationsPage from "./pages/admin/NotificationsPage";
 
 function App() {
   return (
@@ -42,6 +47,7 @@ function App() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogDetailPage />} />
           <Route path="/listings" element={<AdListingPage />} />
+          <Route path="/booking" element={<BookingPage />} />
         </Route>
 
         {/* Admin */}
@@ -65,10 +71,17 @@ function App() {
           <Route path="blogs" element={<BlogsEditor />} />
           <Route path="ads" element={<AdsEditor />} />
           <Route path="messages" element={<Messages />} />
+          {/* New routes */}
+          <Route path="bookings" element={<BookingsManager />} />
+          <Route path="chat-logs" element={<ChatLogs />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+
+      {/* Global AI chatbot — shown on all public pages */}
+      <ChatWidget />
     </>
   );
 }
