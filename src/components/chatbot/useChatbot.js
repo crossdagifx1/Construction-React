@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
 
 const SESSION_KEY = "havi_chat_session_id";
 
@@ -59,11 +59,16 @@ export function useChatbot() {
       setIsLoading(true);
 
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 25000); // 25s max wait
+
         const res = await fetch(`${API_BASE}/api/chat/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: userText, sessionId }),
+          signal: controller.signal,
         });
+        clearTimeout(timer);
 
         const data = await res.json();
 
@@ -78,12 +83,15 @@ export function useChatbot() {
 
         setMessages((prev) => [...prev, aiMsg]);
       } catch (err) {
+        const isTimeout = err.name === "AbortError";
         setMessages((prev) => [
           ...prev,
           {
             id: (Date.now() + 1).toString(),
             role: "assistant",
-            content: "Sorry, I'm having trouble connecting right now. Please try again or contact us directly!",
+            content: isTimeout
+              ? "Our AI assistant is taking longer than usual — please try again in a moment, or book a consultation directly at /booking!"
+              : "We offer interior design, renovation & construction in Addis Ababa. Book a free consultation at /booking or contact us directly!",
             createdAt: new Date(),
             error: true,
           },

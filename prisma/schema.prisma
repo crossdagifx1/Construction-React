@@ -13,8 +13,11 @@ model Admin {
   email        String   @unique
   passwordHash String
   name         String?
+  role         String   @default("ADMIN") // "ADMIN" | "TECHNICAL_ADMIN"
+  superKey     String?  // extra secret for tech ops
   createdAt    DateTime @default(now())
 }
+
 
 /// Flexible key/JSON store for grouped content: "hero", "about", "contact", "marquee".
 model Setting {
@@ -161,4 +164,45 @@ model Notification {
   read      Boolean  @default(false)
   refId     String?
   createdAt DateTime @default(now())
+}
+
+// ── Technical Admin: AI Logging ───────────────────────────────────
+
+model AiLog {
+  id         String   @id @default(cuid())
+  provider   String   // "openrouter" | "gemini" | "static"
+  model      String
+  prompt     String
+  response   String?
+  tokens     Int?
+  latencyMs  Int?
+  success    Boolean  @default(true)
+  errorMsg   String?
+  sessionId  String?
+  createdAt  DateTime @default(now())
+}
+
+// ── Technical Admin: Error Logging ────────────────────────────────
+
+model ErrorLog {
+  id         String    @id @default(cuid())
+  severity   String    @default("ERROR") // "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL"
+  route      String?
+  method     String?
+  message    String
+  stack      String?
+  meta       Json?
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+// ── Technical Admin: Report Jobs ─────────────────────────────────
+
+model ReportJob {
+  id          String   @id @default(cuid())
+  type        String   // "ai-usage" | "errors" | "bookings" | "chat" | "full"
+  params      Json?
+  result      Json?
+  generatedAt DateTime @default(now())
 }

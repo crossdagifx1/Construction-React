@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import PublicLayout from "./components/PublicLayout";
 import ScrollToTop from "./components/ScrollToTop";
-import ProtectedRoute from "./components/ProtectedRoute";
 import ChatWidget from "./components/chatbot/ChatWidget";
+
 
 import Home from "./pages/Home";
 import AboutPage from "./pages/AboutPage";
@@ -31,6 +31,14 @@ import Messages from "./pages/admin/Messages";
 import BookingsManager from "./pages/admin/BookingsManager";
 import ChatLogs from "./pages/admin/ChatLogs";
 import NotificationsPage from "./pages/admin/NotificationsPage";
+
+import ProtectedRoute, { TechAdminRoute } from "./components/ProtectedRoute";
+import TechDashboard from "./pages/admin/tech/TechDashboard";
+import AIManager from "./pages/admin/tech/AIManager";
+import ErrorMonitor from "./pages/admin/tech/ErrorMonitor";
+import ReportCenter from "./pages/admin/tech/ReportCenter";
+import SystemHealth from "./pages/admin/tech/SystemHealth";
+
 
 function App() {
   return (
@@ -75,7 +83,15 @@ function App() {
           <Route path="bookings" element={<BookingsManager />} />
           <Route path="chat-logs" element={<ChatLogs />} />
           <Route path="notifications" element={<NotificationsPage />} />
+
+          {/* ── Technical Admin routes ── */}
+          <Route path="tech" element={<TechAdminRoute><TechDashboard /></TechAdminRoute>} />
+          <Route path="tech/ai" element={<TechAdminRoute><AIManager /></TechAdminRoute>} />
+          <Route path="tech/errors" element={<TechAdminRoute><ErrorMonitor /></TechAdminRoute>} />
+          <Route path="tech/reports" element={<TechAdminRoute><ReportCenter /></TechAdminRoute>} />
+          <Route path="tech/system" element={<TechAdminRoute><SystemHealth /></TechAdminRoute>} />
         </Route>
+
 
         <Route path="*" element={<NotFound />} />
       </Routes>

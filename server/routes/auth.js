@@ -17,13 +17,26 @@ router.post("/login", async (req, res) => {
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
   const token = signToken(admin);
-  res.json({ token, admin: { id: admin.id, email: admin.email, name: admin.name } });
+  res.json({
+    token,
+    admin: {
+      id: admin.id,
+      email: admin.email,
+      name: admin.name,
+      role: admin.role,  // ← expose role to frontend
+    },
+  });
 });
 
 router.get("/me", requireAuth, async (req, res) => {
   const admin = await prisma.admin.findUnique({ where: { id: req.admin.id } });
   if (!admin) return res.status(404).json({ error: "Not found" });
-  res.json({ id: admin.id, email: admin.email, name: admin.name });
+  res.json({
+    id: admin.id,
+    email: admin.email,
+    name: admin.name,
+    role: admin.role,  // ← expose role to frontend
+  });
 });
 
 export default router;

@@ -1,19 +1,9 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import prisma from "../db.js";
 import { requireAuth } from "../auth.js";
+import { generateReply } from "../services/aiEngine.js";
 
 const router = express.Router();
-const prisma = new PrismaClient();
-
-// Initialize Gemini AI
-const hasGeminiKey = process.env.GEMINI_API_KEY && 
-  process.env.GEMINI_API_KEY !== "your-gemini-api-key-here" &&
-  process.env.GEMINI_API_KEY !== "";
-
-const genAI = hasGeminiKey
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
 
 // HAVI's context system prompt
 const SYSTEM_PROMPT = `You are HAVI, a friendly and professional AI assistant for HAVI'S DESIGN — a premium interior design and construction company based in Addis Ababa, Ethiopia.
@@ -65,7 +55,7 @@ router.post("/message", async (req, res) => {
         data: {
           type: "chat",
           title: "New Chat Session Started",
-          body: `A visitor started a chat: "${message.slice(0, 80)}..."`,
+          body: `A visitor started a chat: "${message.slice(0, 80)}${message.length > 80 ? "..." : ""}"`,
           refId: session.id,
         },
       });
@@ -76,42 +66,26 @@ router.post("/message", async (req, res) => {
       data: { sessionId: session.id, role: "user", content: message },
     });
 
-    let aiReply = "";
+    // Build history for the AI engine
+    const history = session.messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
 
-    if (genAI) {
-      // Build Gemini conversation history
-      const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: SYSTEM_PROMPT,
-      });
-
-      const history = session.messages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
-
-      const chat = model.startChat({
-        history,
-      });
-
-      const result = await chat.sendMessage(message);
-      aiReply = result.response.text();
-    } else {
-      // Fallback responses when no API key is set
-      const fallbacks = [
-        "Thank you for reaching out to HAVI'S DESIGN! We specialize in premium interior design and renovation in Addis Ababa. Would you like to book a free consultation?",
-        "Great question! Our team would love to help you with your design project. Feel free to book a consultation at /booking or tell me more about your project.",
-        "We offer interior design, renovation, and construction services across Addis Ababa. Starting prices vary by project — a free consultation helps us give you an accurate quote!",
-      ];
-      aiReply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
-    }
+    // Generate reply via multi-provider AI engine (with fallback chain)
+    const { reply, provider, model } = await generateReply(
+      SYSTEM_PROMPT,
+      history,
+      message,
+      session.id
+    );
 
     // Save assistant reply
     await prisma.chatMessage.create({
-      data: { sessionId: session.id, role: "assistant", content: aiReply },
+      data: { sessionId: session.id, role: "assistant", content: reply },
     });
 
-    res.json({ reply: aiReply, sessionId });
+    res.json({ reply, sessionId, _meta: { provider, model } });
   } catch (err) {
     console.error("Chat error:", err);
     res.status(500).json({ error: "Failed to process message. Please try again." });

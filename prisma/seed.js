@@ -19,9 +19,27 @@ async function main() {
   await prisma.admin.upsert({
     where: { email },
     update: { passwordHash },
-    create: { email, passwordHash, name: "HAVI Admin" },
+    create: { email, passwordHash, name: "HAVI Admin", role: "ADMIN" },
   });
   console.log(`✓ Admin seeded: ${email}`);
+
+  // ── Technical Admin ─────────────────────────────────
+  const techEmail = process.env.TECH_ADMIN_EMAIL || "techadmin@havisdesign.sys";
+  const techPassword = process.env.TECH_ADMIN_PASSWORD || "H@v!T3ch#2026$X9zQp";
+  const techHash = await bcrypt.hash(techPassword, 12);
+  const { randomUUID } = await import("crypto");
+  await prisma.admin.upsert({
+    where: { email: techEmail },
+    update: { passwordHash: techHash },
+    create: {
+      email: techEmail,
+      passwordHash: techHash,
+      name: "Technical Administrator",
+      role: "TECHNICAL_ADMIN",
+      superKey: randomUUID(),
+    },
+  });
+  console.log(`✓ Technical Admin seeded: ${techEmail}`);
 
   // ── Settings (grouped JSON) ───────────────────────────
   const settings = {

@@ -1,9 +1,8 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../db.js";
 import { requireAuth } from "../auth.js";
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Time slots available each day
 const ALL_SLOTS = [

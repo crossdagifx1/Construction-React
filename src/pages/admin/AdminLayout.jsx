@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
 
 const NAV_GROUPS = [
   {
@@ -41,6 +43,19 @@ const NAV_GROUPS = [
   },
 ];
 
+// Tech Admin nav — only shown to TECHNICAL_ADMIN role
+const TECH_NAV_GROUP = {
+  label: "⚡ Technical",
+  items: [
+    { to: "/admin/tech",         label: "Tech Dashboard", icon: "⚡", end: true },
+    { to: "/admin/tech/ai",      label: "AI Manager",     icon: "🤖" },
+    { to: "/admin/tech/errors",  label: "Error Monitor",  icon: "🚨" },
+    { to: "/admin/tech/reports", label: "Report Center",  icon: "📊" },
+    { to: "/admin/tech/system",  label: "System Health",  icon: "🏥" },
+  ],
+};
+
+
 function useNotificationCount(token) {
   const [count, setCount] = useState(0);
 
@@ -68,6 +83,7 @@ function useNotificationCount(token) {
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const { admin, isTechAdmin } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState("dark");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -166,20 +182,65 @@ export default function AdminLayout() {
                   ))}
                 </div>
               ))}
+
+              {/* ── Technical Admin Section (TECHNICAL_ADMIN only) ── */}
+              {isTechAdmin && (
+                <div style={{ marginTop: 8 }}>
+                  {/* Divider */}
+                  <div style={{ height: 1, background: "rgba(124,58,237,0.2)", margin: "8px 10px 14px" }} />
+                  <div style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: 1.5,
+                    padding: "4px 10px", marginBottom: 6, textTransform: "uppercase",
+                    background: "linear-gradient(90deg, #7c3aed, #06b6d4)",
+                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                  }}>⚡ Technical</div>
+                  {TECH_NAV_GROUP.items.map(item => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.end}
+                      style={({ isActive }) => ({
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "8px 10px", borderRadius: 10, marginBottom: 2,
+                        textDecoration: "none", fontSize: 13.5, fontWeight: 500,
+                        color: isActive ? "#a78bfa" : "rgba(167,139,250,0.5)",
+                        background: isActive ? "rgba(124,58,237,0.12)" : "transparent",
+                        border: isActive ? "1px solid rgba(124,58,237,0.2)" : "1px solid transparent",
+                        transition: "all 0.15s",
+                      })}
+                    >
+                      <span style={{ fontSize: 15 }}>{item.icon}</span>
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
             </nav>
+
 
             {/* User section */}
             <div style={{ padding: "12px 14px", borderTop: `1px solid ${colors.sidebarBorder}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #c8a96e, #a07840)",
+                  background: isTechAdmin
+                    ? "linear-gradient(135deg, #7c3aed, #06b6d4)"
+                    : "linear-gradient(135deg, #c8a96e, #a07840)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   color: "#fff", fontWeight: 700, fontSize: 13,
-                }}>A</div>
+                }}>{isTechAdmin ? "⚡" : "A"}</div>
                 <div>
-                  <div style={{ color: colors.text, fontSize: 13, fontWeight: 600 }}>Admin</div>
-                  <div style={{ color: colors.textMuted, fontSize: 11 }}>HAVI'S DESIGN</div>
+                  <div style={{ color: colors.text, fontSize: 13, fontWeight: 600 }}>
+                    {admin?.name || "Admin"}
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8,
+                    ...(isTechAdmin
+                      ? { background: "linear-gradient(90deg,#7c3aed,#06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }
+                      : { color: colors.textMuted }
+                    )
+                  }}>
+                    {isTechAdmin ? "TECHNICAL ADMIN" : "HAVI'S DESIGN"}
+                  </div>
                 </div>
               </div>
               <button

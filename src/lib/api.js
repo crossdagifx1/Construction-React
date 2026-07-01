@@ -71,4 +71,41 @@ export const api = {
       isForm: true,
     });
   },
+
+  // ── Technical Admin ───────────────────────────────────────────────────────
+  // AI Engine
+  techAiStatus: () => request("/tech/ai/status", { auth: true }),
+  techAiStats: (hours = 24) => request(`/tech/ai/stats?hours=${hours}`, { auth: true }),
+  techAiLogs: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return request(`/tech/ai/logs${q ? `?${q}` : ""}`, { auth: true });
+  },
+  techAiLogDetail: (id) => request(`/tech/ai/logs/${id}`, { auth: true }),
+  techAiUpdateConfig: (body) => request("/tech/ai/config", { method: "PUT", body, auth: true }),
+  techAiTest: (message) => request("/tech/ai/test", { method: "POST", body: { message }, auth: true }),
+
+  // Error Monitoring
+  techErrors: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return request(`/tech/errors${q ? `?${q}` : ""}`, { auth: true });
+  },
+  techErrorDetail: (id) => request(`/tech/errors/${id}`, { auth: true }),
+  techErrorResolve: (id) => request(`/tech/errors/${id}/resolve`, { method: "PUT", auth: true }),
+  techErrorDelete: (id) => request(`/tech/errors/${id}`, { method: "DELETE", auth: true }),
+  techErrorsClearResolved: () => request("/tech/errors?resolved=true", { method: "DELETE", auth: true }),
+
+  // Reports
+  techGenerateReport: (body) => request("/tech/reports/generate", { method: "POST", body, auth: true }),
+  techReports: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return request(`/tech/reports${q ? `?${q}` : ""}`, { auth: true });
+  },
+  techReportDetail: (id) => request(`/tech/reports/${id}`, { auth: true }),
+  techReportDelete: (id) => request(`/tech/reports/${id}`, { method: "DELETE", auth: true }),
+
+  // System Health
+  techHealth: () => request("/tech/system/health", { auth: true }),
+  techSystemStats: () => request("/tech/system/stats", { auth: true }),
+  techAdmins: () => request("/tech/system/admins", { auth: true }),
 };
+

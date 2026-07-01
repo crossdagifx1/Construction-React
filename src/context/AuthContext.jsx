@@ -32,8 +32,12 @@ export const AuthProvider = ({ children }) => {
     setAdmin(null);
   };
 
+  // Derived role helpers
+  const isTechAdmin = admin?.role === "TECHNICAL_ADMIN";
+  const isAdmin = !!admin; // any role
+
   return (
-    <AuthContext.Provider value={{ admin, ready, login, logout }}>
+    <AuthContext.Provider value={{ admin, ready, login, logout, isTechAdmin, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
