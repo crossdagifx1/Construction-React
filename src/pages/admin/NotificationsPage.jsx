@@ -1,9 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { FiCalendar, FiMail, FiMessageSquare, FiBell, FiTrash2, FiCheckSquare } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
 const TOKEN = () => localStorage.getItem("havi_admin_token");
+
+// Design tokens
+const T = {
+  paper:  "#F6F3ED",
+  sand:   "#EFE9DF",
+  line:   "#E2DCD0",
+  ink:    "#121110",
+  stone:  "#6F6A62",
+  accent: "#B98A4B",
+  deep:   "#8C6635",
+};
 
 function fmtTime(d) {
   const date = new Date(d);
@@ -15,8 +27,17 @@ function fmtTime(d) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-const TYPE_ICONS = { booking: "📅", message: "✉️", chat: "💬" };
-const TYPE_COLORS = { booking: "#c8a96e", message: "#a78bfa", chat: "#38bdf8" };
+const TYPE_ICONS = { 
+  booking: <FiCalendar size={18} />, 
+  message: <FiMail size={18} />, 
+  chat: <FiMessageSquare size={18} /> 
+};
+
+const TYPE_COLORS = { 
+  booking: "#B98A4B", 
+  message: "#7c3aed", 
+  chat: "#0284c7" 
+};
 
 function NotifCard({ notif, onRead, onDelete }) {
   return (
@@ -25,24 +46,25 @@ function NotifCard({ notif, onRead, onDelete }) {
       animate={{ opacity: 1, y: 0 }}
       style={{
         display: "flex", gap: 14, padding: "16px 18px",
-        background: notif.read ? "rgba(255,255,255,0.02)" : "rgba(200,169,110,0.05)",
-        border: `1px solid ${notif.read ? "rgba(255,255,255,0.06)" : "rgba(200,169,110,0.15)"}`,
+        background: notif.read ? "#ffffff" : "#fdfbf7",
+        border: `1px solid ${notif.read ? T.line : T.accent}`,
         borderRadius: 14, marginBottom: 8, alignItems: "flex-start",
+        boxShadow: "0 2px 10px rgba(18,17,16,0.02)"
       }}
     >
       <div style={{
         width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-        background: `${TYPE_COLORS[notif.type] || "#c8a96e"}18`,
-        border: `1px solid ${TYPE_COLORS[notif.type] || "#c8a96e"}30`,
+        background: `${TYPE_COLORS[notif.type] || "#B98A4B"}18`,
+        border: `1px solid ${TYPE_COLORS[notif.type] || "#B98A4B"}30`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 18,
+        color: TYPE_COLORS[notif.type] || "#B98A4B"
       }}>
-        {TYPE_ICONS[notif.type] || "🔔"}
+        {TYPE_ICONS[notif.type] || <FiBell size={18} />}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-          <div style={{ color: "#f5f0ea", fontSize: 14, fontWeight: notif.read ? 500 : 700, flex: 1 }}>
+          <div style={{ color: T.ink, fontSize: 14, fontWeight: notif.read ? 500 : 700, flex: 1 }}>
             {notif.title}
             {!notif.read && (
               <span style={{
@@ -51,11 +73,11 @@ function NotifCard({ notif, onRead, onDelete }) {
               }} />
             )}
           </div>
-          <span style={{ color: "rgba(245,240,234,0.3)", fontSize: 11, whiteSpace: "nowrap", flexShrink: 0 }}>
+          <span style={{ color: T.stone, fontSize: 11, whiteSpace: "nowrap", flexShrink: 0 }}>
             {fmtTime(notif.createdAt)}
           </span>
         </div>
-        <p style={{ color: "rgba(245,240,234,0.5)", fontSize: 13, margin: "4px 0 10px", lineHeight: 1.55 }}>
+        <p style={{ color: T.stone, fontSize: 13, margin: "4px 0 10px", lineHeight: 1.55 }}>
           {notif.body}
         </p>
         <div style={{ display: "flex", gap: 8 }}>
@@ -63,8 +85,8 @@ function NotifCard({ notif, onRead, onDelete }) {
             <button
               onClick={() => onRead(notif.id)}
               style={{
-                padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", color: "#60a5fa",
+                padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                background: "#dbeafe", border: "1px solid #bfdbfe", color: "#1e40af",
               }}
             >
               Mark read
@@ -74,22 +96,23 @@ function NotifCard({ notif, onRead, onDelete }) {
             <Link
               to="/admin/bookings"
               style={{
-                padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-                background: "rgba(200,169,110,0.1)", border: "1px solid rgba(200,169,110,0.25)",
-                color: "#c8a96e", textDecoration: "none",
+                padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                background: `${T.accent}12`, border: `1px solid ${T.line}`,
+                color: T.accent, textDecoration: "none", display: "inline-flex", alignItems: "center"
               }}
             >
-              View booking →
+              View booking
             </Link>
           )}
           <button
             onClick={() => onDelete(notif.id)}
             style={{
-              padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
-              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171",
+              padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+              background: "#fee2e2", border: "1px solid #fecaca", color: "#dc2626",
+              display: "inline-flex", alignItems: "center", gap: 4
             }}
           >
-            Delete
+            <FiTrash2 size={12} /> Delete
           </button>
         </div>
       </div>
@@ -145,9 +168,9 @@ export default function NotificationsPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 14 }}>
         <div>
-          <h1 style={{ color: "#f5f0ea", fontSize: 24, fontWeight: 800, margin: 0 }}>
+          <h1 style={{ color: T.ink, fontSize: 24, fontWeight: 800, margin: 0, fontFamily: "Fraunces, Georgia, serif" }}>
             Notifications
             {unreadCount > 0 && (
               <span style={{
@@ -157,7 +180,7 @@ export default function NotificationsPage() {
               }}>{unreadCount}</span>
             )}
           </h1>
-          <p style={{ color: "rgba(245,240,234,0.4)", fontSize: 14, margin: "4px 0 0" }}>
+          <p style={{ color: T.stone, fontSize: 14, margin: "4px 0 0" }}>
             {notifications.length} notification{notifications.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -167,10 +190,11 @@ export default function NotificationsPage() {
             onClick={markAllRead}
             style={{
               padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer",
-              background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", color: "#60a5fa",
+              background: T.accent, border: "none", color: "#fff",
+              display: "inline-flex", alignItems: "center", gap: 6
             }}
           >
-            ✓ Mark all read
+            <FiCheckSquare /> Mark all read
           </button>
         )}
       </div>
@@ -183,10 +207,11 @@ export default function NotificationsPage() {
             onClick={() => setFilter(f)}
             style={{
               padding: "8px 18px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer",
-              border: filter === f ? "2px solid #c8a96e" : "2px solid rgba(255,255,255,0.08)",
-              background: filter === f ? "rgba(200,169,110,0.15)" : "rgba(255,255,255,0.04)",
-              color: filter === f ? "#c8a96e" : "rgba(245,240,234,0.5)",
+              border: filter === f ? `2px solid ${T.accent}` : `2px solid ${T.line}`,
+              background: filter === f ? `${T.accent}12` : "#fff",
+              color: filter === f ? T.accent : T.stone,
               textTransform: "capitalize",
+              transition: "all 0.15s"
             }}
           >
             {f === "unread" ? `Unread (${unreadCount})` : "All"}
@@ -195,11 +220,11 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 40, color: "rgba(245,240,234,0.3)" }}>Loading...</div>
+        <div style={{ textAlign: "center", padding: 40, color: T.stone }}>Loading...</div>
       ) : notifications.length === 0 ? (
         <div style={{ textAlign: "center", padding: 60 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🔔</div>
-          <p style={{ color: "rgba(245,240,234,0.3)", fontSize: 15 }}>
+          <div style={{ color: T.stone, fontSize: 40, marginBottom: 12 }}><FiBell /></div>
+          <p style={{ color: T.stone, fontSize: 15 }}>
             {filter === "unread" ? "No unread notifications!" : "No notifications yet"}
           </p>
         </div>

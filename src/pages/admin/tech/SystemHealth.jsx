@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../../../lib/api";
+import { 
+  FiActivity, FiRefreshCw, FiCheckCircle, FiXCircle, 
+  FiDatabase, FiUsers, FiSettings, FiCpu, FiServer, FiChevronRight 
+} from "react-icons/fi";
 
 const C = {
   bg: "#F6F3ED", surface: "#FFFFFF", surface2: "#EFE9DF",
@@ -66,15 +70,19 @@ export default function SystemHealth() {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #10b981, #06b6d4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🏥</div>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: `${C.accent}15`, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: C.accent }}>
+              <FiActivity />
+            </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>System Health</h1>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, fontFamily: "Fraunces, Georgia, serif" }}>System Health</h1>
               <p style={{ margin: 0, fontSize: 13, color: C.muted }}>Infrastructure · Database · AI APIs · Environment</p>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {health && <StatusDot status={health.overallStatus} />}
-            <button onClick={load} style={{ padding: "7px 14px", borderRadius: 8, background: "rgba(124,58,237,0.1)", border: `1px solid rgba(124,58,237,0.3)`, color: C.accent, fontSize: 12, cursor: "pointer" }}>↻ Refresh</button>
+            <button onClick={load} style={{ padding: "7px 14px", borderRadius: 8, background: C.surface2, border: `1px solid ${C.border}`, color: C.text, fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <FiRefreshCw /> Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -98,8 +106,9 @@ export default function SystemHealth() {
                 )}
                 {svc.error && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{svc.error}</div>}
                 {svc.configured != null && (
-                  <div style={{ fontSize: 11, color: svc.configured ? C.green : C.red, marginTop: 4 }}>
-                    {svc.configured ? "✅ API Key configured" : "❌ Not configured"}
+                  <div style={{ fontSize: 11, color: svc.configured ? C.green : C.red, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                    {svc.configured ? <FiCheckCircle /> : <FiXCircle />}
+                    {svc.configured ? "API Key configured" : "Not configured"}
                   </div>
                 )}
               </div>
@@ -108,21 +117,23 @@ export default function SystemHealth() {
 
           {/* AI Fallback Chain Visualization */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, marginBottom: 20 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>⛓️ AI Fallback Chain</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}><FiCpu color={C.accent} /> AI Fallback Chain</div>
             <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }}>
               {[
-                { label: "OpenRouter", sub: "Primary (7 free models)", icon: "🔷", color: C.accent },
-                { label: "Gemini Direct", sub: "Fallback (gemini-1.5-flash)", icon: "🔶", color: C.cyan },
-                { label: "Static Response", sub: "Final fallback (always works)", icon: "🟢", color: C.green },
+                { label: "OpenRouter", sub: "Primary (7 free models)", icon: <FiServer />, color: C.accent },
+                { label: "Gemini Direct", sub: "Fallback (gemini-1.5-flash)", icon: <FiCpu />, color: C.cyan },
+                { label: "Static Response", sub: "Final fallback (always works)", icon: <FiCheckCircle />, color: C.green },
               ].map((step, i, arr) => (
                 <div key={step.label} style={{ display: "flex", alignItems: "center" }}>
                   <div style={{ background: C.surface2, borderRadius: 12, padding: "12px 16px", border: `1px solid ${step.color}40`, textAlign: "center", minWidth: 140 }}>
-                    <div style={{ fontSize: 22, marginBottom: 4 }}>{step.icon}</div>
+                    <div style={{ fontSize: 22, marginBottom: 4, color: step.color, display: "flex", justifyContent: "center" }}>{step.icon}</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: step.color }}>{step.label}</div>
                     <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{step.sub}</div>
                   </div>
                   {i < arr.length - 1 && (
-                    <div style={{ padding: "0 10px", color: C.muted, fontSize: 20 }}>→</div>
+                    <div style={{ padding: "0 10px", color: C.muted, fontSize: 20, display: "flex", alignItems: "center" }}>
+                      <FiChevronRight />
+                    </div>
                   )}
                 </div>
               ))}
@@ -134,7 +145,7 @@ export default function SystemHealth() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
               {Object.entries(stats).map(([group, data]) => (
                 <div key={group} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: C.muted, textTransform: "capitalize", marginBottom: 12 }}>{group} Records</div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: C.muted, textTransform: "capitalize", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}><FiDatabase /> {group} Records</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {Object.entries(data).map(([k, v]) => (
                       <StatCard key={k} label={k} value={v} color={C.text} />
@@ -147,7 +158,7 @@ export default function SystemHealth() {
 
           {/* Admin Accounts */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, marginBottom: 20 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>👥 Admin Accounts ({admins.length})</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}><FiUsers color={C.accent} /> Admin Accounts ({admins.length})</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {admins.map((a) => (
                 <div key={a.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: C.surface2, borderRadius: 10 }}>
@@ -170,7 +181,7 @@ export default function SystemHealth() {
           {/* Environment Audit */}
           {health?.env && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>⚙️ Environment Variables Audit</div>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}><FiSettings color={C.accent} /> Environment Variables Audit</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 6 }}>
                 {Object.entries(health.env).map(([k, v]) => (
                   <EnvRow key={k} k={k} v={v} />

@@ -1,8 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import { FiMessageSquare, FiCpu, FiUser, FiTrash2 } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
 const TOKEN = () => localStorage.getItem("havi_admin_token");
+
+// Design tokens
+const T = {
+  paper:  "#F6F3ED",
+  sand:   "#EFE9DF",
+  line:   "#E2DCD0",
+  ink:    "#121110",
+  stone:  "#6F6A62",
+  accent: "#B98A4B",
+  deep:   "#8C6635",
+};
 
 function fmtTime(d) {
   const date = new Date(d);
@@ -18,9 +30,10 @@ function SessionCard({ session, onClick, isActive }) {
       onClick={onClick}
       style={{
         padding: "14px 16px", cursor: "pointer", borderRadius: 12,
-        background: isActive ? "rgba(200,169,110,0.1)" : "rgba(255,255,255,0.03)",
-        border: `1px solid ${isActive ? "rgba(200,169,110,0.35)" : "rgba(255,255,255,0.07)"}`,
+        background: isActive ? `${T.accent}12` : "#ffffff",
+        border: `1px solid ${isActive ? T.accent : T.line}`,
         marginBottom: 8, transition: "all 0.15s",
+        boxShadow: "0 2px 10px rgba(18,17,16,0.02)"
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -29,25 +42,29 @@ function SessionCard({ session, onClick, isActive }) {
             width: 28, height: 28, borderRadius: "50%",
             background: "linear-gradient(135deg, #c8a96e, #7a5a30)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontWeight: 700, fontSize: 12, flexShrink: 0,
+            color: "#fff", flexShrink: 0,
           }}>
-            💬
+            <FiMessageSquare size={13} />
           </div>
-          <span style={{ color: "#e8e2da", fontSize: 13, fontWeight: 600 }}>
+          <span style={{ color: T.ink, fontSize: 13, fontWeight: 600 }}>
             Visitor #{session.id.slice(-6).toUpperCase()}
           </span>
         </div>
-        <span style={{ color: "rgba(245,240,234,0.3)", fontSize: 11 }}>{session._count?.messages} msgs</span>
+        <span style={{ color: T.stone, fontSize: 11 }}>{session._count?.messages} msgs</span>
       </div>
       {lastMsg && (
         <p style={{
-          color: "rgba(245,240,234,0.4)", fontSize: 12, margin: 0,
+          color: T.stone, fontSize: 12, margin: 0,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          display: "flex", alignItems: "center", gap: 4
         }}>
-          {lastMsg.role === "assistant" ? "🤖" : "👤"} {lastMsg.content.slice(0, 70)}
+          <span style={{ opacity: 0.6, flexShrink: 0 }}>
+            {lastMsg.role === "assistant" ? <FiCpu size={11} /> : <FiUser size={11} />}
+          </span>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{lastMsg.content}</span>
         </p>
       )}
-      <div style={{ color: "rgba(245,240,234,0.2)", fontSize: 11, marginTop: 4 }}>
+      <div style={{ color: T.stone, fontSize: 11, marginTop: 4, opacity: 0.6 }}>
         {fmtTime(session.updatedAt)}
       </div>
     </motion.div>
@@ -56,23 +73,23 @@ function SessionCard({ session, onClick, isActive }) {
 
 function TranscriptView({ session }) {
   if (!session) return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12 }}>
-      <div style={{ fontSize: 48 }}>💬</div>
-      <p style={{ color: "rgba(245,240,234,0.3)", fontSize: 14 }}>Select a session to view the transcript</p>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12, padding: 40 }}>
+      <div style={{ color: T.stone, fontSize: 40 }}><FiMessageSquare /></div>
+      <p style={{ color: T.stone, fontSize: 14 }}>Select a session to view the transcript</p>
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${T.line}`, display: "flex", alignItems: "center", gap: 10, background: T.paper }}>
         <div style={{ flex: 1 }}>
-          <div style={{ color: "#f5f0ea", fontWeight: 700 }}>Visitor #{session.id.slice(-6).toUpperCase()}</div>
-          <div style={{ color: "rgba(245,240,234,0.4)", fontSize: 12 }}>Session ID: {session.sessionId}</div>
+          <div style={{ color: T.ink, fontWeight: 700 }}>Visitor #{session.id.slice(-6).toUpperCase()}</div>
+          <div style={{ color: T.stone, fontSize: 12 }}>Session ID: {session.sessionId}</div>
         </div>
-        <div style={{ color: "rgba(245,240,234,0.3)", fontSize: 12 }}>{session.messages?.length} messages</div>
+        <div style={{ color: T.stone, fontSize: 12 }}>{session.messages?.length} messages</div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10, scrollbarWidth: "thin", scrollbarColor: "rgba(200,169,110,0.2) transparent" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10, background: "#fff" }}>
         {session.messages?.map((msg, i) => (
           <motion.div
             key={msg.id}
@@ -88,11 +105,11 @@ function TranscriptView({ session }) {
           >
             <div style={{
               width: 26, height: 26, borderRadius: "50%",
-              background: msg.role === "assistant" ? "linear-gradient(135deg, #c8a96e, #a07840)" : "rgba(255,255,255,0.1)",
+              background: msg.role === "assistant" ? "linear-gradient(135deg, #c8a96e, #a07840)" : T.sand,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, flexShrink: 0,
+              fontSize: 12, flexShrink: 0, color: msg.role === "assistant" ? "#fff" : T.stone
             }}>
-              {msg.role === "assistant" ? "🤖" : "👤"}
+              {msg.role === "assistant" ? <FiCpu size={12} /> : <FiUser size={12} />}
             </div>
             <div style={{
               maxWidth: "75%",
@@ -105,14 +122,14 @@ function TranscriptView({ session }) {
                 color: "#fff",
                 borderBottomRightRadius: 4,
               } : {
-                background: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#e8e2da",
+                background: T.paper,
+                border: `1px solid ${T.line}`,
+                color: T.ink,
                 borderBottomLeftRadius: 4,
               }),
             }}>
               {msg.content}
-              <div style={{ fontSize: 10, opacity: 0.5, marginTop: 4, textAlign: msg.role === "user" ? "right" : "left" }}>
+              <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: msg.role === "user" ? "right" : "left" }}>
                 {fmtTime(msg.createdAt)}
               </div>
             </div>
@@ -171,18 +188,18 @@ export default function ChatLogs() {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ color: "#f5f0ea", fontSize: 24, fontWeight: 800, margin: 0 }}>Chat Logs</h1>
-        <p style={{ color: "rgba(245,240,234,0.4)", fontSize: 14, margin: "4px 0 0" }}>{total} total sessions from your AI chatbot</p>
+        <h1 style={{ color: T.ink, fontSize: 24, fontWeight: 800, margin: 0, fontFamily: "Fraunces, Georgia, serif" }}>Chat Logs</h1>
+        <p style={{ color: T.stone, fontSize: 14, margin: "4px 0 0" }}>{total} total sessions from your AI chatbot</p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 16, height: "calc(100vh - 200px)" }}>
         {/* Sessions list */}
-        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "rgba(200,169,110,0.2) transparent" }}>
+        <div style={{ background: T.paper, border: `1px solid ${T.line}`, borderRadius: 16, padding: 16, overflowY: "auto", scrollbarWidth: "thin" }}>
           {loading ? (
-            <div style={{ color: "rgba(245,240,234,0.3)", textAlign: "center", padding: 20 }}>Loading sessions...</div>
+            <div style={{ color: T.stone, textAlign: "center", padding: 20 }}>Loading sessions...</div>
           ) : sessions.length === 0 ? (
-            <div style={{ color: "rgba(245,240,234,0.2)", textAlign: "center", padding: 20 }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
+            <div style={{ color: T.stone, textAlign: "center", padding: 20 }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}><FiMessageSquare /></div>
               <p>No chat sessions yet</p>
             </div>
           ) : sessions.map(s => (
@@ -196,23 +213,22 @@ export default function ChatLogs() {
                 onClick={e => { e.stopPropagation(); deleteSession(s.id); }}
                 style={{
                   position: "absolute", top: 12, right: 12,
-                  background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
-                  borderRadius: 6, padding: "2px 8px", color: "#f87171",
-                  cursor: "pointer", fontSize: 11, display: "none",
+                  background: "#fee2e2", border: "1px solid #fecaca",
+                  borderRadius: 6, padding: "4px 8px", color: "#dc2626",
+                  cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center"
                 }}
-                className="delete-btn"
               >
-                🗑
+                <FiTrash2 />
               </button>
             </div>
           ))}
         </div>
 
         {/* Transcript */}
-        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden" }}>
+        <div style={{ background: "#ffffff", border: `1px solid ${T.line}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 10px rgba(18,17,16,0.02)" }}>
           {loadingSession ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
-              <div style={{ color: "rgba(245,240,234,0.3)", fontSize: 14 }}>Loading transcript...</div>
+              <div style={{ color: T.stone, fontSize: 14 }}>Loading transcript...</div>
             </div>
           ) : (
             <TranscriptView session={activeSession} />

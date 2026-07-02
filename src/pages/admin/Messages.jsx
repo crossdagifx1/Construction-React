@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../lib/api";
+import { FiMail, FiPhone, FiCornerUpLeft, FiTrash2, FiEye, FiEyeOff, FiAlertTriangle, FiCheckSquare } from "react-icons/fi";
 
 const fmt = (iso) => {
   try {
@@ -10,6 +11,17 @@ const fmt = (iso) => {
 
 const FILTERS = ["All", "Unread", "Read"];
 
+// Design tokens
+const T = {
+  paper:  "#F6F3ED",
+  sand:   "#EFE9DF",
+  line:   "#E2DCD0",
+  ink:    "#121110",
+  stone:  "#6F6A62",
+  accent: "#B98A4B",
+  deep:   "#8C6635",
+};
+
 function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
   const [expanded, setExpanded] = useState(false);
   return (
@@ -18,10 +30,11 @@ function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
       animate={{ opacity: 1, y: 0 }}
       onClick={onClick}
       style={{
-        background: isActive ? "rgba(200,169,110,0.08)" : m.read ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)",
-        border: `1px solid ${isActive ? "rgba(200,169,110,0.3)" : m.read ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.1)"}`,
+        background: isActive ? `${T.accent}0d` : m.read ? "#ffffff" : "#fdfbf7",
+        border: `1px solid ${isActive ? T.accent : m.read ? T.line : T.accent}`,
         borderRadius: 14, padding: "16px 18px", cursor: "pointer",
         transition: "all 0.15s",
+        boxShadow: "0 2px 10px rgba(18,17,16,0.02)"
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
@@ -37,7 +50,7 @@ function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-              <span style={{ color: "#f5f0ea", fontWeight: m.read ? 500 : 700, fontSize: 14 }}>{m.name}</span>
+              <span style={{ color: T.ink, fontWeight: m.read ? 500 : 700, fontSize: 14 }}>{m.name}</span>
               {!m.read && (
                 <span style={{
                   background: "#3b82f6", borderRadius: 6, padding: "1px 7px",
@@ -46,17 +59,17 @@ function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
               )}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
-              <a href={`mailto:${m.email}`} onClick={e => e.stopPropagation()} style={{ color: "#c8a96e", fontSize: 12, textDecoration: "none" }}>
-                ✉️ {m.email}
+              <a href={`mailto:${m.email}`} onClick={e => e.stopPropagation()} style={{ color: T.accent, fontSize: 12, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <FiMail size={12} /> {m.email}
               </a>
               {m.phone && (
-                <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ color: "#c8a96e", fontSize: 12, textDecoration: "none" }}>
-                  📞 {m.phone}
+                <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ color: T.accent, fontSize: 12, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <FiPhone size={12} /> {m.phone}
                 </a>
               )}
             </div>
             <p style={{
-              color: expanded ? "#e8e2da" : "rgba(245,240,234,0.5)",
+              color: expanded ? T.ink : T.stone,
               fontSize: 13, margin: 0, lineHeight: 1.6,
               overflow: expanded ? "visible" : "hidden",
               textOverflow: expanded ? "unset" : "ellipsis",
@@ -67,12 +80,12 @@ function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
             {m.message?.length > 100 && (
               <button
                 onClick={e => { e.stopPropagation(); setExpanded(x => !x); }}
-                style={{ background: "none", border: "none", color: "#c8a96e", cursor: "pointer", fontSize: 12, padding: "4px 0 0", fontFamily: "inherit" }}
+                style={{ background: "none", border: "none", color: T.accent, cursor: "pointer", fontSize: 12, padding: "4px 0 0", fontFamily: "inherit", fontWeight: 600 }}
               >
                 {expanded ? "Show less ↑" : "Read more ↓"}
               </button>
             )}
-            <div style={{ color: "rgba(245,240,234,0.25)", fontSize: 11, marginTop: 6 }}>{fmt(m.createdAt)}</div>
+            <div style={{ color: T.stone, fontSize: 11, marginTop: 6, opacity: 0.6 }}>{fmt(m.createdAt)}</div>
           </div>
         </div>
 
@@ -86,12 +99,12 @@ function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
             title="Reply by email"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
-              width: 34, height: 34, borderRadius: 8, fontSize: 15,
-              background: "rgba(200,169,110,0.1)", border: "1px solid rgba(200,169,110,0.25)",
-              textDecoration: "none",
+              width: 34, height: 34, borderRadius: 8, fontSize: 14,
+              background: `${T.accent}12`, border: `1px solid ${T.line}`,
+              color: T.accent, textDecoration: "none",
             }}
           >
-            ↩️
+            <FiCornerUpLeft />
           </a>
 
           {/* Toggle read */}
@@ -99,13 +112,14 @@ function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
             onClick={() => onToggleRead(m)}
             title={m.read ? "Mark unread" : "Mark read"}
             style={{
-              width: 34, height: 34, borderRadius: 8, fontSize: 15,
-              background: m.read ? "rgba(255,255,255,0.05)" : "rgba(59,130,246,0.1)",
-              border: `1px solid ${m.read ? "rgba(255,255,255,0.1)" : "rgba(59,130,246,0.3)"}`,
-              cursor: "pointer",
+              width: 34, height: 34, borderRadius: 8, fontSize: 14,
+              background: m.read ? "#fff" : "#dbeafe",
+              border: `1px solid ${m.read ? T.line : "#bfdbfe"}`,
+              color: m.read ? T.stone : "#1e40af",
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"
             }}
           >
-            {m.read ? "📩" : "✓"}
+            {m.read ? <FiEyeOff /> : <FiEye />}
           </button>
 
           {/* Delete */}
@@ -113,12 +127,12 @@ function MessageCard({ m, onToggleRead, onDelete, isActive, onClick }) {
             onClick={() => onDelete(m.id)}
             title="Delete"
             style={{
-              width: 34, height: 34, borderRadius: 8, fontSize: 15,
-              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
-              cursor: "pointer",
+              width: 34, height: 34, borderRadius: 8, fontSize: 14,
+              background: "#fee2e2", border: "1px solid #fecaca",
+              color: "#dc2626", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"
             }}
           >
-            🗑
+            <FiTrash2 />
           </button>
         </div>
       </div>
@@ -174,9 +188,9 @@ const Messages = () => {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 14 }}>
         <div>
-          <h1 style={{ color: "#f5f0ea", fontSize: 24, fontWeight: 800, margin: 0 }}>
+          <h1 style={{ color: T.ink, fontSize: 24, fontWeight: 800, margin: 0, fontFamily: "Fraunces, Georgia, serif" }}>
             Messages
             {unreadCount > 0 && (
               <span style={{
@@ -186,7 +200,7 @@ const Messages = () => {
               }}>{unreadCount}</span>
             )}
           </h1>
-          <p style={{ color: "rgba(245,240,234,0.4)", fontSize: 14, margin: "4px 0 0" }}>
+          <p style={{ color: T.stone, fontSize: 14, margin: "4px 0 0" }}>
             Contact form enquiries from your website
           </p>
         </div>
@@ -198,10 +212,11 @@ const Messages = () => {
             }}
             style={{
               padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer",
-              background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", color: "#60a5fa",
+              background: T.accent, border: "none", color: "#fff",
+              display: "inline-flex", alignItems: "center", gap: 6
             }}
           >
-            ✓ Mark all read
+            <FiCheckSquare /> Mark all read
           </button>
         )}
       </div>
@@ -214,9 +229,10 @@ const Messages = () => {
             onClick={() => setFilter(f)}
             style={{
               padding: "8px 18px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer",
-              border: filter === f ? "2px solid #c8a96e" : "2px solid rgba(255,255,255,0.08)",
-              background: filter === f ? "rgba(200,169,110,0.15)" : "rgba(255,255,255,0.04)",
-              color: filter === f ? "#c8a96e" : "rgba(245,240,234,0.5)",
+              border: filter === f ? `2px solid ${T.accent}` : `2px solid ${T.line}`,
+              background: filter === f ? `${T.accent}12` : "#fff",
+              color: filter === f ? T.accent : T.stone,
+              transition: "all 0.15s"
             }}
           >
             {f}{f === "Unread" ? ` (${unreadCount})` : ""}
@@ -225,17 +241,17 @@ const Messages = () => {
       </div>
 
       {error && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 16px", color: "#f87171", fontSize: 13, marginBottom: 16 }}>
-          ⚠️ {error}
+        <div style={{ background: "#fee2e2", border: "1px solid #fecaca", borderRadius: 10, padding: "10px 16px", color: "#dc2626", fontSize: 13, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+          <FiAlertTriangle /> {error}
         </div>
       )}
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 40, color: "rgba(245,240,234,0.3)" }}>Loading messages...</div>
+        <div style={{ textAlign: "center", padding: 40, color: T.stone }}>Loading messages...</div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: 60 }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>✉️</div>
-          <p style={{ color: "rgba(245,240,234,0.3)", fontSize: 15 }}>
+          <div style={{ color: T.stone, fontSize: 40, marginBottom: 10 }}><FiMail /></div>
+          <p style={{ color: T.stone, fontSize: 15 }}>
             {filter !== "All" ? `No ${filter.toLowerCase()} messages` : "No messages yet"}
           </p>
         </div>

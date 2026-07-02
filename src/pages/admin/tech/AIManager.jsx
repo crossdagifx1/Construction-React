@@ -252,7 +252,7 @@ export default function AIManager() {
               ))}
             </div>
             <button onClick={saveConfig} disabled={savingConfig} style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(16,185,129,0.12)", border: `1px solid ${C.green}`, color: C.green, fontSize: 12, cursor: "pointer", fontWeight: 700 }}>
-              {savingConfig ? "Saving…" : "💾 Save"}
+              {savingConfig ? "Saving…" : "Save"}
             </button>
           </div>
 
@@ -264,7 +264,7 @@ export default function AIManager() {
                   <ModelRow key={m.id} m={m} i={i} dragging={draggingOR}
                     onDragStart={setDraggingOR} onDragOver={(to) => moveOR(draggingOR, to)}
                     onDragEnd={() => setDraggingOR(null)} onToggle={toggleOR} showTier={false} />
-                ))
+                  ))
               : geminiQueue.map((m, i) => (
                   <ModelRow key={m.id} m={m} i={i} dragging={draggingGem}
                     onDragStart={setDraggingGem} onDragOver={(to) => moveGem(draggingGem, to)}
@@ -287,17 +287,17 @@ export default function AIManager() {
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {/* Test Console */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18, flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>🧪 AI Test Console</div>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}><FiSliders /> AI Test Console</div>
             <textarea value={testMsg} onChange={(e) => setTestMsg(e.target.value)} rows={2}
               style={{ ...input, width: "100%", resize: "vertical", boxSizing: "border-box", marginBottom: 8, fontFamily: "inherit" }} />
             <button onClick={handleTest} disabled={testing}
               style={{ width: "100%", padding: "10px 0", borderRadius: 10, background: "linear-gradient(135deg, #7c3aed, #06b6d4)", border: "none", color: "#fff", fontWeight: 700, fontSize: 13, cursor: testing ? "not-allowed" : "pointer", opacity: testing ? 0.7 : 1, marginBottom: 10 }}>
-              {testing ? "Testing…" : "⚡ Send Test"}
+              {testing ? "Testing…" : "Send Test"}
             </button>
             {testResult && (
               <div style={{ background: C.surface2, borderRadius: 10, padding: 12 }}>
                 {testResult.error ? (
-                  <div style={{ color: C.red, fontSize: 12 }}>❌ {testResult.error}</div>
+                  <div style={{ color: C.red, fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}><FiAlertTriangle /> {testResult.error}</div>
                 ) : (
                   <>
                     <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
@@ -315,7 +315,7 @@ export default function AIManager() {
           {/* Provider Chart */}
           {barData.length > 0 && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: C.muted }}>📊 Calls by Provider (7d)</div>
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, color: C.muted, display: "flex", alignItems: "center", gap: 6 }}><FiFileText /> Calls by Provider (7d)</div>
               <ResponsiveContainer width="100%" height={110}>
                 <BarChart data={barData} barCategoryGap="30%">
                   <XAxis dataKey="name" stroke={C.muted} tick={{ fontSize: 10 }} />
@@ -333,7 +333,7 @@ export default function AIManager() {
       {/* AI Logs Table */}
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>📋 AI Call Logs ({logTotal})</div>
+          <div style={{ fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><FiFileText /> AI Call Logs ({logTotal})</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <select value={filterProvider} onChange={(e) => setFilterProvider(e.target.value)} style={input}>
               <option value="">All Providers</option>
@@ -346,7 +346,7 @@ export default function AIManager() {
               <option value="true">Success</option>
               <option value="false">Failed</option>
             </select>
-            <button onClick={() => { setLogPage(1); load(); }} style={{ ...input, cursor: "pointer" }}>↻</button>
+            <button onClick={() => { setLogPage(1); load(); }} style={{ ...input, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><FiRefreshCw /></button>
           </div>
         </div>
         <div style={{ overflowX: "auto" }}>

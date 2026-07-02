@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBooking } from "./useBooking";
 import QRCode from "qrcode";
+import { 
+  FiClock, FiPhoneCall, FiCheckCircle, FiAward, FiXCircle, 
+  FiCoffee, FiMapPin, FiCompass, FiBriefcase, FiUser, 
+  FiCalendar, FiMail, FiTrash2, FiSearch, FiRefreshCw,
+  FiChevronLeft, FiChevronRight, FiEdit2, FiInfo, FiPlusSquare,
+  FiFileText, FiSliders, FiLink, FiCheckSquare, FiPlus, FiAlertCircle, FiDownload
+} from "react-icons/fi";
 
 // ── Design tokens (matches landing page) ─────────────────────────────────────
 const T = {
@@ -20,10 +27,10 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const MEETING_TYPES = [
-  { value: "free_consultation", label: "Free Consultation", icon: "☕", desc: "30-min intro call to discuss your vision" },
-  { value: "site_visit",        label: "Site Visit",        icon: "🏗️", desc: "Our team visits your location for assessment" },
-  { value: "design_review",     label: "Design Review",    icon: "🎨", desc: "Review & refine your design concept" },
-  { value: "project_kickoff",   label: "Project Kickoff",  icon: "🚀", desc: "Start your approved project formally" },
+  { value: "free_consultation", label: "Free Consultation", icon: <FiCoffee size={18} style={{ display: "inline-block", verticalAlign: "middle" }} />, desc: "30-min intro call to discuss your vision" },
+  { value: "site_visit",        label: "Site Visit",        icon: <FiMapPin size={18} style={{ display: "inline-block", verticalAlign: "middle" }} />, desc: "Our team visits your location for assessment" },
+  { value: "design_review",     label: "Design Review",     icon: <FiCompass size={18} style={{ display: "inline-block", verticalAlign: "middle" }} />, desc: "Review & refine your design concept" },
+  { value: "project_kickoff",   label: "Project Kickoff",   icon: <FiBriefcase size={18} style={{ display: "inline-block", verticalAlign: "middle" }} />, desc: "Start your approved project formally" },
 ];
 
 const SERVICES = ["Interior Design","Renovation","Office Design","Commercial Construction","Landscaping","Furniture Selection"];
@@ -38,11 +45,11 @@ const BUDGETS = [
 ];
 
 const STATUS_CONFIG = {
-  pending:   { color: "#92400e", bg: "#fef3c7", border: "#fde68a", label: "Awaiting Verification", icon: "⏳" },
-  verified:  { color: "#1e40af", bg: "#dbeafe", border: "#bfdbfe", label: "Verified",               icon: "📞" },
-  confirmed: { color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Confirmed",              icon: "✅" },
-  completed: { color: "#6b21a8", bg: "#f3e8ff", border: "#e9d5ff", label: "Completed",              icon: "🎉" },
-  cancelled: { color: "#991b1b", bg: "#fee2e2", border: "#fecaca", label: "Cancelled",              icon: "❌" },
+  pending:   { color: "#92400e", bg: "#fef3c7", border: "#fde68a", label: "Awaiting Verification", icon: <FiClock size={12} /> },
+  verified:  { color: "#1e40af", bg: "#dbeafe", border: "#bfdbfe", label: "Verified",               icon: <FiPhoneCall size={12} /> },
+  confirmed: { color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Confirmed",              icon: <FiCheckCircle size={12} /> },
+  completed: { color: "#6b21a8", bg: "#f3e8ff", border: "#e9d5ff", label: "Completed",              icon: <FiAward size={12} /> },
+  cancelled: { color: "#991b1b", bg: "#fee2e2", border: "#fecaca", label: "Cancelled",              icon: <FiXCircle size={12} /> },
 };
 
 const MEETING_LABELS = {
@@ -218,51 +225,42 @@ function Calendar({ selectedDate, onSelectDate, availability, fetchAvailability,
           </div>
 
           {/* Time format selector */}
-          <div style={{ display: "flex", background: T.sand, borderRadius: 6, padding: 2, marginBottom: 10, gap: 2, border: `1px solid ${T.line}` }}>
+          <div style={{ display: "flex", background: T.sand, borderRadius: 8, padding: 2, marginBottom: 12, border: `1px solid ${T.line}` }}>
             {[
               { id: "24hr", label: "24h" },
               { id: "12hr", label: "12h" },
-              { id: "ethiopian", label: "ET (እጅ)" }
+              { id: "ethiopian", label: "ET" }
             ].map(fmt => (
-              <button
-                key={fmt.id}
-                onClick={() => setTimeFormat(fmt.id)}
+              <button key={fmt.id} onClick={() => setTimeFormat(fmt.id)}
                 style={{
-                  flex: 1, padding: "4px 2px", border: "none", borderRadius: 4, fontSize: 9, fontWeight: 700,
-                  cursor: "pointer",
+                  flex: 1, padding: "4px 0", border: "none", borderRadius: 6, fontSize: 10, fontWeight: 700, cursor: "pointer",
                   background: timeFormat === fmt.id ? T.accent : "transparent",
                   color: timeFormat === fmt.id ? "#fff" : T.stone,
                   transition: "all 0.12s"
-                }}
-              >
+                }}>
                 {fmt.label}
               </button>
             ))}
           </div>
 
           {loading ? (
-            <div style={{ color: T.stone, fontSize: 13, padding: 16, textAlign: "center" }}>Loading…</div>
-          ) : availability?.available?.length === 0 ? (
-            <div style={{ color: "#991b1b", fontSize: 12, padding: "12px 0", lineHeight: 1.5 }}>No slots available. Pick another day.</div>
+            <div style={{ color: T.stone, fontSize: 12 }}>Loading availability…</div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {(availability?.available || []).map(slot => {
-                const isSel = selectedSlot === slot;
-                return (
-                  <motion.button key={slot} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => handleSlotClick(slot)}
-                    style={{
-                      width: "100%", padding: "10px 12px",
-                      border: `${isSel ? 2 : 1}px solid ${isSel ? T.accent : T.line}`,
-                      borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: isSel ? 700 : 500,
-                      background: isSel ? T.accent : T.paper,
-                      color: isSel ? "#fff" : T.ink,
-                      transition: "all 0.12s",
-                    }}>
-                    {formatTimeSlot(slot, timeFormat)}
-                  </motion.button>
-                );
-              })}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 220, overflowY: "auto", paddingRight: 4 }}>
+              {availability.map(({ timeSlot, available }) => (
+                <button key={timeSlot} disabled={!available} onClick={() => handleSlotClick(timeSlot)}
+                  style={{
+                    padding: "8px 12px", borderRadius: 8, border: `1px solid ${selectedSlot === timeSlot ? T.accent : T.line}`,
+                    background: selectedSlot === timeSlot ? T.accent : available ? "#fff" : T.sand,
+                    color: selectedSlot === timeSlot ? "#fff" : available ? T.ink : T.stone,
+                    cursor: available ? "pointer" : "not-allowed",
+                    fontSize: 12, fontWeight: 600,
+                    opacity: available ? 1 : 0.4,
+                    transition: "all 0.12s",
+                  }}>
+                  {formatTimeSlot(timeSlot, timeFormat)}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -271,332 +269,287 @@ function Calendar({ selectedDate, onSelectDate, availability, fetchAvailability,
   );
 }
 
-// ── Main Modal ────────────────────────────────────────────────────────────────
+// ── Main Booking Modal ────────────────────────────────────────────────────────
 export default function BookingModal({ isOpen, onClose }) {
-  const { availability, availabilityLoading, submitting, looking, error, lookupResult, fetchAvailability, submitBooking, lookupBooking, reset } = useBooking();
+  const {
+    step, setStep, selectedDate, setSelectedDate, availability, fetchAvailability, loading,
+    form, setForm, submitting, submittedBooking, submitError, submit,
+    lookupRef, setLookupRef, lookupResult, setLookupResult, lookupError, setLookupError, looking, handleLookup
+  } = useBooking();
 
-  const [step, setStep] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [submittedBooking, setSubmittedBooking] = useState(null);
-  const [timeFormat, setTimeFormat] = useState("24hr");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
-  const [lookupRef, setLookupRef] = useState("");
-  const [lookupError, setLookupError] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", meetingType: "free_consultation", siteAddress: "", budget: "", services: [], projectDescription: "", service: "" });
+  const [timeFormat, setTimeFormat] = useState("12hr");
 
-  const handleClose = useCallback(() => {
-    onClose();
-    setTimeout(() => {
-      setStep(0); setSelectedDate(null); setSelectedSlot(null);
-      setSubmittedBooking(null); setLookupRef(""); setLookupError(null);
-      setQrCodeUrl("");
-      setTimeFormat("24hr");
-      setForm({ name: "", email: "", phone: "", city: "", meetingType: "free_consultation", siteAddress: "", budget: "", services: [], projectDescription: "", service: "" });
-      reset();
-    }, 300);
-  }, [onClose, reset]);
-
-  const toggleService = (s) => setForm(f => ({
-    ...f,
-    services: f.services.includes(s) ? f.services.filter(x => x !== s) : [...f.services, s],
-    service: f.service || s,
-  }));
-
-  const goSubmit = async () => {
-    if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) return;
-    const dateObj = selectedDate instanceof Date ? selectedDate : selectedDate?.date;
-    try {
-      const result = await submitBooking({ name: form.name, email: form.email, phone: form.phone, city: form.city, service: form.service || form.services[0] || "Interior Design", services: form.services, meetingType: form.meetingType, date: dateObj?.toISOString(), timeSlot: selectedSlot, siteAddress: form.siteAddress, budget: form.budget, projectDescription: form.projectDescription });
-      setSubmittedBooking(result.booking);
-
-      // Generate QR Code URL
-      const qrDataUrl = await QRCode.toDataURL(result.booking.bookingRef, {
-        width: 256,
+  useEffect(() => {
+    if (step === 2 && submittedBooking?.bookingRef) {
+      QRCode.toDataURL(submittedBooking.bookingRef, {
         margin: 1,
-        color: {
-          dark: T.ink,
-          light: "#ffffff",
-        },
-      });
-      setQrCodeUrl(qrDataUrl);
-      setStep(2);
-    } catch (_) {}
+        color: { dark: "#121110", light: "#F6F3ED" }
+      }).then(setQrCodeUrl).catch(console.error);
+    }
+  }, [step, submittedBooking]);
+
+  const handleClose = () => {
+    onClose();
+    setStep(0);
+    setSelectedDate(null);
+    setForm({ name: "", email: "", phone: "", service: "Interior Design", meetingType: "free_consultation", budget: "Under ETB 30,000", message: "", services: [], projectDescription: "" });
+    setLookupRef("");
+    setLookupResult(null);
+    setLookupError("");
+    setQrCodeUrl("");
   };
 
   const downloadBookingCard = () => {
     if (!submittedBooking) return;
     const canvas = document.createElement("canvas");
     canvas.width = 600;
-    canvas.height = 900;
+    canvas.height = 400;
     const ctx = canvas.getContext("2d");
 
-    // Background
+    // Draw background
     ctx.fillStyle = T.paper;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Border
-    ctx.strokeStyle = T.line;
-    ctx.lineWidth = 4;
+    // Draw border
+    ctx.strokeStyle = T.accent;
+    ctx.lineWidth = 6;
     ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
 
-    // Header Branding
-    ctx.textAlign = "center";
+    // Draw branding header
+    ctx.font = "bold 14px monospace";
     ctx.fillStyle = T.stone;
-    ctx.font = "bold 20px sans-serif";
-    ctx.fillText("HAVI'S DESIGN", canvas.width / 2, 80);
+    ctx.textAlign = "center";
+    ctx.fillText("HAVI'S DESIGN PASS", canvas.width / 2, 40);
 
+    // Draw reference number
+    ctx.font = "bold 36px monospace";
     ctx.fillStyle = T.accent;
-    ctx.font = "italic 32px Georgia, serif";
-    ctx.fillText("Booking Confirmation", canvas.width / 2, 130);
+    ctx.fillText(submittedBooking.bookingRef, canvas.width / 2, 85);
 
-    // Divider Line
+    // Draw separator dashed line
+    ctx.beginPath();
+    ctx.setLineDash([6, 6]);
+    ctx.moveTo(30, 110);
+    ctx.lineTo(canvas.width - 30, 110);
     ctx.strokeStyle = T.line;
     ctx.lineWidth = 2;
-    ctx.setLineDash([8, 8]);
-    ctx.beginPath();
-    ctx.moveTo(40, 180);
-    ctx.lineTo(canvas.width - 40, 180);
-    ctx.stroke();
-    ctx.setLineDash([]); // Reset line dash
-
-    // Booking Ref (Big and Bold)
-    ctx.fillStyle = T.stone;
-    ctx.font = "bold 16px sans-serif";
-    ctx.fillText("BOOKING ID", canvas.width / 2, 230);
-
-    ctx.fillStyle = T.ink;
-    ctx.font = "bold 42px monospace";
-    ctx.fillText(submittedBooking.bookingRef, canvas.width / 2, 280);
-
-    // Dotted Separator
-    ctx.setLineDash([8, 8]);
-    ctx.beginPath();
-    ctx.moveTo(40, 320);
-    ctx.lineTo(canvas.width - 40, 320);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Client Info
+    // Draw Details Title & values
     ctx.textAlign = "left";
+    ctx.font = "12px sans-serif";
     ctx.fillStyle = T.stone;
-    ctx.font = "14px sans-serif";
 
-    const drawField = (label, val, y) => {
-      ctx.fillStyle = T.stone;
-      ctx.font = "bold 13px sans-serif";
-      ctx.fillText(label.toUpperCase(), 60, y);
-      ctx.fillStyle = T.ink;
-      ctx.font = "600 18px sans-serif";
-      ctx.fillText(val, 60, y + 24);
-    };
+    const col1 = 50;
+    const col2 = 300;
 
-    drawField("Client Name", submittedBooking.name || form.name, 370);
-    drawField("Meeting Type", MEETING_LABELS[submittedBooking.meetingType] || "Consultation", 440);
-    drawField("Date", fmtDate(submittedBooking.date), 510);
-    drawField("Time Slot", formatTimeSlot(submittedBooking.timeSlot, timeFormat), 580);
+    // Row 1
+    ctx.fillText("CLIENT NAME", col1, 140);
+    ctx.fillText("MEETING TYPE", col2, 140);
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = T.ink;
+    ctx.fillText(submittedBooking.name.toUpperCase(), col1, 165);
+    ctx.fillText(MEETING_LABELS[submittedBooking.meetingType] || "Consultation", col2, 165);
 
-    // Draw QR Code
+    // Row 2
+    ctx.font = "12px sans-serif";
+    ctx.fillStyle = T.stone;
+    ctx.fillText("DATE", col1, 210);
+    ctx.fillText("TIME SLOT", col2, 210);
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = T.ink;
+    ctx.fillText(fmtDate(submittedBooking.date), col1, 235);
+    ctx.fillText(formatTimeSlot(submittedBooking.timeSlot, timeFormat), col2, 235);
+
+    // Draw Status Alert banner
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillStyle = "#92400e";
+    ctx.fillRect(50, 270, 200, 32);
+    ctx.fillStyle = "#fff";
+    ctx.fillText("Awaiting Verification", 65, 291);
+
+    // Draw QR Code onto canvas
     if (qrCodeUrl) {
-      const qrImg = new Image();
-      qrImg.src = qrCodeUrl;
-      qrImg.onload = () => {
-        // Draw centered QR Code
-        const qrSize = 160;
-        ctx.drawImage(qrImg, canvas.width - qrSize - 60, 370, qrSize, qrSize);
-
-        // Footer note
-        ctx.textAlign = "center";
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 430, 135, 120, 120);
+        ctx.font = "bold 9px sans-serif";
         ctx.fillStyle = T.stone;
-        ctx.font = "italic 13px sans-serif";
-        ctx.fillText("Awaiting verification. We will call you within 2 hours.", canvas.width / 2, 780);
+        ctx.textAlign = "center";
+        ctx.fillText("Scan to track schedule", 490, 275);
 
-        ctx.fillStyle = T.accent;
-        ctx.font = "bold 14px sans-serif";
-        ctx.fillText("Thank you for choosing HAVI'S DESIGN", canvas.width / 2, 810);
-
-        // Trigger Download
+        // Download trigger
         const link = document.createElement("a");
-        link.download = `havi-booking-${submittedBooking.bookingRef}.png`;
+        link.download = `HAVI-Booking-${submittedBooking.bookingRef}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
       };
+      img.src = qrCodeUrl;
     } else {
-      // Trigger Download immediately if no QR code loaded
+      // Fallback download if image load fails or not ready
       const link = document.createElement("a");
-      link.download = `havi-booking-${submittedBooking.bookingRef}.png`;
+      link.download = `HAVI-Booking-${submittedBooking.bookingRef}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     }
   };
 
-  const handleLookup = async () => {
-    if (!lookupRef.trim()) return;
-    setLookupError(null);
-    try { await lookupBooking(lookupRef); setStep(3); }
-    catch (e) { setLookupError(e.message); }
-  };
-
-  useEffect(() => {
-    if (selectedDate && typeof selectedDate === "object" && selectedDate.timeSlot) setSelectedSlot(selectedDate.timeSlot);
-  }, [selectedDate]);
-
-  if (!isOpen) return null;
-
-  // Shared styles
   const inputStyle = {
-    width: "100%", padding: "10px 13px", borderRadius: 8, fontSize: 13,
-    background: T.paper, border: `1px solid ${T.line}`,
-    color: T.ink, outline: "none", boxSizing: "border-box",
-    fontFamily: "Inter, system-ui, sans-serif",
+    width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 13,
+    background: "#fff", border: `1px solid ${T.line}`,
+    color: T.ink, outline: "none", transition: "all 0.15s", boxSizing: "border-box"
   };
-  const labelStyle = { fontSize: 11, color: T.stone, display: "block", marginBottom: 5, fontWeight: 500, letterSpacing: 0.3 };
-  const fieldRow = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 };
+
+  const selectStyle = {
+    ...inputStyle, appearance: "none", cursor: "pointer",
+    backgroundImage: `url("data:image/svg+xml;utf8,<svg fill='none' stroke='%236F6A62' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M19 9l-7 7-7-7'></path></svg>")`,
+    backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", backgroundSize: "16px"
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(18,17,16,0.5)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
-          onClick={e => e.target === e.currentTarget && handleClose()}>
-
-          <motion.div initial={{ y: 24, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 24, opacity: 0 }} transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            style={{ background: T.paper, border: `1px solid ${T.line}`, borderRadius: 20, width: "100%", maxWidth: 740, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 32px 64px rgba(18,17,16,0.18), 0 0 0 1px rgba(18,17,16,0.06)" }}>
-
-            {/* Header */}
-            <div style={{ padding: "22px 28px 0", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
+          style={{ position: "fixed", inset: 0, background: "rgba(18,17,16,0.3)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+            style={{ width: "100%", maxWidth: step === 0 ? 560 : 500, background: T.paper, borderRadius: 20, border: `1.5px solid ${T.line}`, display: "flex", flexDirection: "column", maxHeight: "90vh", overflow: "hidden", boxShadow: "0 20px 50px rgba(18,17,16,0.15)" }}>
+            
+            {/* Modal header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 28px", borderBottom: `1.5px solid ${T.line}` }}>
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#16a34a" }} />
-                  <span style={{ fontSize: 10, color: T.stone, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>HAVI'S DESIGN</span>
-                </div>
-                <h2 style={{ color: T.ink, fontWeight: 800, fontSize: 19, margin: 0, fontFamily: "Fraunces, Georgia, serif" }}>
-                  {step === 0 && "Select a Date & Time"}
-                  {step === 1 && "Your Meeting Details"}
-                  {step === 2 && "Booking Submitted"}
-                  {step === 3 && "Meeting Schedule"}
+                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: T.ink, fontFamily: "Fraunces, Georgia, serif" }}>
+                  {step === 3 ? "Booking Status Tracker" : "Schedule a Consultation"}
                 </h2>
               </div>
-              <button onClick={handleClose} style={{ background: T.sand, border: `1px solid ${T.line}`, borderRadius: 8, width: 32, height: 32, cursor: "pointer", color: T.stone, fontSize: 17, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+              <button onClick={handleClose} style={{ background: T.sand, border: "none", color: T.stone, fontSize: 18, width: 32, height: 32, borderRadius: 8, cursor: "pointer" }}>×</button>
             </div>
 
-            <StepBar step={step} />
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px 28px 28px" }}>
+            {/* Step indicator */}
+            {step < 3 && <StepBar step={step} />}
+
+            {/* Step content */}
+            <div style={{ padding: "24px 28px", overflowY: "auto", flex: 1 }}>
               <AnimatePresence mode="wait">
 
-                {/* ── STEP 0: CALENDAR ── */}
+                {/* ── STEP 0: CALENDAR SELECT ── */}
                 {step === 0 && (
-                  <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.22 }}>
-                    <Calendar selectedDate={selectedDate} onSelectDate={setSelectedDate} availability={availability} fetchAvailability={fetchAvailability} loading={availabilityLoading} timeFormat={timeFormat} setTimeFormat={setTimeFormat} />
-
-                    <div style={{ marginTop: 22, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${T.line}`, paddingTop: 18 }}>
-                      <div style={{ fontSize: 13, color: T.stone }}>
-                        {selectedDate && selectedSlot
-                          ? <span style={{ color: T.accent, fontWeight: 600 }}>📅 {fmtDate(selectedDate instanceof Date ? selectedDate : selectedDate.date)} · {formatTimeSlot(selectedSlot, timeFormat)}</span>
-                          : "Select a date then a time slot"}
+                  <motion.div key="s0" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                    <div style={{ marginBottom: 18 }}>
+                      <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.8, display: "block", marginBottom: 5, fontWeight: 700 }}>Meeting Type</label>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                        {MEETING_TYPES.map(m => (
+                          <button key={m.value} onClick={() => setForm(f => ({ ...f, meetingType: m.value }))}
+                            style={{
+                              textAlign: "left", padding: "12px 14px", borderRadius: 12, cursor: "pointer",
+                              background: form.meetingType === m.value ? `${T.accent}12` : "#fff",
+                              border: `1.5px solid ${form.meetingType === m.value ? T.accent : T.line}`,
+                              transition: "all 0.15s"
+                            }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                              <span style={{ color: form.meetingType === m.value ? T.accent : T.stone }}>{m.icon}</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{m.label}</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: T.stone, lineHeight: 1.3 }}>{m.desc}</div>
+                          </button>
+                        ))}
                       </div>
-                      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                        onClick={() => selectedDate && selectedSlot && setStep(1)}
-                        disabled={!selectedDate || !selectedSlot}
-                        style={{ background: selectedDate && selectedSlot ? T.accent : T.sand, border: "none", borderRadius: 10, padding: "11px 26px", color: selectedDate && selectedSlot ? "#fff" : T.stone, fontSize: 13, fontWeight: 700, cursor: selectedDate && selectedSlot ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
-                        Continue →
-                      </motion.button>
+                    </div>
+
+                    <div style={{ marginBottom: 24 }}>
+                      <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.8, display: "block", marginBottom: 5, fontWeight: 700 }}>Select Date & Time</label>
+                      <Calendar
+                        selectedDate={selectedDate}
+                        onSelectDate={setSelectedDate}
+                        availability={availability}
+                        fetchAvailability={fetchAvailability}
+                        loading={loading}
+                        timeFormat={timeFormat}
+                        setTimeFormat={setTimeFormat}
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1.5px solid ${T.line}`, paddingTop: 16, alignItems: "center" }}>
+                      {/* Lookup trigger link */}
+                      <button onClick={() => setStep(2)} style={{ background: "none", border: "none", color: T.accent, fontSize: 12, cursor: "pointer", fontWeight: 700 }}>
+                        Already booked? Track status →
+                      </button>
+                      <button disabled={!selectedDate?.date || !selectedDate?.timeSlot} onClick={() => setStep(1)}
+                        style={{
+                          background: T.accent, border: "none", borderRadius: 8, padding: "10px 24px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: (selectedDate?.date && selectedDate?.timeSlot) ? "pointer" : "not-allowed", opacity: (selectedDate?.date && selectedDate?.timeSlot) ? 1 : 0.5
+                        }}>
+                        Continue
+                      </button>
                     </div>
                   </motion.div>
                 )}
 
-                {/* ── STEP 1: DETAILS ── */}
+                {/* ── STEP 1: FORM DETAILS ── */}
                 {step === 1 && (
-                  <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.22 }}>
-                    {/* Selected slot banner */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, background: `${T.accent}12`, border: `1px solid ${T.accent}33`, borderRadius: 10, padding: "10px 14px", marginBottom: 18 }}>
-                      <span style={{ fontSize: 16 }}>📅</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ color: T.accent, fontWeight: 700, fontSize: 13 }}>{fmtDate(selectedDate instanceof Date ? selectedDate : selectedDate?.date)}</div>
-                        <div style={{ color: T.stone, fontSize: 11 }}>at {selectedSlot}</div>
+                  <motion.div key="s1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                      <div>
+                        <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4, fontWeight: 700 }}>Full Name</label>
+                        <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" style={inputStyle} />
                       </div>
-                      <button onClick={() => setStep(0)} style={{ background: T.paper, border: `1px solid ${T.line}`, borderRadius: 6, padding: "3px 10px", color: T.stone, fontSize: 11, cursor: "pointer" }}>Change</button>
-                    </div>
-
-                    {/* Meeting type */}
-                    <div style={{ marginBottom: 16 }}>
-                      <label style={{ ...labelStyle, textTransform: "uppercase", letterSpacing: 1, color: T.accent, fontWeight: 700 }}>Meeting Type</label>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(148px,1fr))", gap: 8 }}>
-                        {MEETING_TYPES.map(mt => (
-                          <button key={mt.value} onClick={() => setForm(f => ({ ...f, meetingType: mt.value }))}
-                            style={{ border: `${form.meetingType === mt.value ? 2 : 1}px solid ${form.meetingType === mt.value ? T.accent : T.line}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", textAlign: "left", background: form.meetingType === mt.value ? `${T.accent}0f` : T.paper, transition: "all 0.12s" }}>
-                            <div style={{ fontSize: 18, marginBottom: 4 }}>{mt.icon}</div>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: form.meetingType === mt.value ? T.accent : T.ink }}>{mt.label}</div>
-                            <div style={{ fontSize: 10, color: T.stone, lineHeight: 1.4, marginTop: 2 }}>{mt.desc}</div>
-                          </button>
-                        ))}
+                      <div>
+                        <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4, fontWeight: 700 }}>Phone Number</label>
+                        <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+251912..." style={inputStyle} />
                       </div>
                     </div>
 
-                    {/* Personal info */}
-                    <div style={{ ...fieldRow, marginBottom: 10 }}>
-                      <div><label style={labelStyle}>Full Name *</label><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Your full name" style={inputStyle} /></div>
-                      <div><label style={labelStyle}>Phone Number *</label><input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+251 9XX XXX XXXX" style={inputStyle} /></div>
-                    </div>
-                    <div style={{ ...fieldRow, marginBottom: 10 }}>
-                      <div><label style={labelStyle}>Email Address *</label><input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="you@example.com" type="email" style={inputStyle} /></div>
-                      <div><label style={labelStyle}>Neighborhood / City</label><input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="e.g. Bole, Addis Ababa" style={inputStyle} /></div>
-                    </div>
-
-                    {form.meetingType === "site_visit" && (
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={labelStyle}>Site Address *</label>
-                        <input value={form.siteAddress} onChange={e => setForm(f => ({ ...f, siteAddress: e.target.value }))} placeholder="Full address of the site to visit" style={inputStyle} />
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                      <div>
+                        <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4, fontWeight: 700 }}>Email Address</label>
+                        <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@example.com" style={inputStyle} />
                       </div>
-                    )}
-
-                    {/* Services */}
-                    <div style={{ marginBottom: 10 }}>
-                      <label style={labelStyle}>Services Interested In</label>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {SERVICES.map(s => (
-                          <button key={s} onClick={() => toggleService(s)}
-                            style={{ padding: "5px 12px", borderRadius: 20, fontSize: 12, cursor: "pointer", border: `1px solid ${form.services.includes(s) ? T.accent : T.line}`, background: form.services.includes(s) ? `${T.accent}12` : T.paper, color: form.services.includes(s) ? T.accent : T.stone, fontWeight: form.services.includes(s) ? 600 : 400, transition: "all 0.12s" }}>
-                            {s}
-                          </button>
-                        ))}
+                      <div>
+                        <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4, fontWeight: 700 }}>Service</label>
+                        <select value={form.service} onChange={e => setForm(f => ({ ...f, service: e.target.value }))} style={selectStyle}>
+                          {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
                       </div>
                     </div>
 
-                    {/* Budget */}
-                    <div style={{ marginBottom: 10 }}>
-                      <label style={labelStyle}>Budget Range</label>
-                      <select value={form.budget} onChange={e => setForm(f => ({ ...f, budget: e.target.value }))} style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}>
-                        <option value="">Select a range (optional)</option>
+                    <div style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4, fontWeight: 700 }}>Budget (ETB)</label>
+                      <select value={form.budget} onChange={e => setForm(f => ({ ...f, budget: e.target.value }))} style={selectStyle}>
                         {BUDGETS.map(b => <option key={b} value={b}>{b}</option>)}
                       </select>
                     </div>
 
-                    {/* Description */}
-                    <div style={{ marginBottom: 10 }}>
-                      <label style={labelStyle}>Tell Us About Your Project</label>
-                      <textarea value={form.projectDescription} onChange={e => setForm(f => ({ ...f, projectDescription: e.target.value }))} placeholder="Describe your space, goals, style preferences, timeline…" rows={3} style={{ ...inputStyle, resize: "vertical" }} />
+                    <div style={{ marginBottom: 18 }}>
+                      <label style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4, fontWeight: 700 }}>Project Details</label>
+                      <textarea value={form.projectDescription} onChange={e => setForm(f => ({ ...f, projectDescription: e.target.value }))} placeholder="Describe your site details, measurements, or preferences..." rows={3} style={{ ...inputStyle, resize: "vertical" }} />
                     </div>
 
-                    {error && <div style={{ color: "#991b1b", fontSize: 13, marginBottom: 10, padding: "10px 14px", background: "#fee2e2", borderRadius: 8, border: "1px solid #fecaca" }}>{error}</div>}
+                    {submitError && (
+                      <div style={{ background: "#fee2e2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px", color: "#dc2626", fontSize: 12.5, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                        <FiAlertCircle /> {submitError}
+                      </div>
+                    )}
 
-                    <div style={{ display: "flex", gap: 10, borderTop: `1px solid ${T.line}`, paddingTop: 18 }}>
-                      <button onClick={() => setStep(0)} style={{ background: T.sand, border: `1px solid ${T.line}`, borderRadius: 10, padding: "11px 18px", color: T.stone, fontSize: 13, cursor: "pointer" }}>← Back</button>
-                      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                        onClick={goSubmit} disabled={!form.name.trim() || !form.email.trim() || !form.phone.trim() || submitting}
-                        style={{ flex: 1, background: T.accent, border: "none", borderRadius: 10, padding: "11px 0", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", opacity: (!form.name.trim() || !form.email.trim() || !form.phone.trim()) ? 0.5 : 1 }}>
-                        {submitting ? "Submitting…" : "Submit Booking →"}
-                      </motion.button>
+                    <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1.5px solid ${T.line}`, paddingTop: 16 }}>
+                      <button onClick={() => setStep(0)} style={{ background: T.sand, border: `1px solid ${T.line}`, borderRadius: 8, padding: "10px 20px", color: T.stone, fontSize: 13, cursor: "pointer" }}>Back</button>
+                      <button disabled={submitting || !form.name.trim() || !form.phone.trim() || !form.email.trim()} onClick={submit}
+                        style={{
+                          background: T.accent, border: "none", borderRadius: 8, padding: "10px 24px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: (submitting || !form.name.trim() || !form.phone.trim() || !form.email.trim()) ? "not-allowed" : "pointer"
+                        }}>
+                        {submitting ? "Booking…" : "Request Appointment"}
+                      </button>
                     </div>
                   </motion.div>
                 )}
 
-                {/* ── STEP 2: PENDING ── */}
+                {/* ── STEP 2: VERIFICATION STAGE (TICKET/QR) ── */}
                 {step === 2 && (
-                  <motion.div key="s2" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.28 }}>
+                  <motion.div key="s2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                     <div style={{ textAlign: "center", marginBottom: 20 }}>
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", damping: 14, stiffness: 200 }} style={{ fontSize: 44, marginBottom: 8 }}>✅</motion.div>
-                      <h3 style={{ color: T.ink, fontWeight: 800, fontSize: 20, marginBottom: 4, fontFamily: "Fraunces, Georgia, serif" }}>Booking Request Received!</h3>
+                      <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#dcfce7", color: "#166534", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", fontSize: 24 }}>
+                        <FiCheckCircle />
+                      </div>
+                      <h3 style={{ margin: "0 0 4px", fontSize: 18, color: T.ink, fontFamily: "Fraunces, Georgia, serif" }}>Booking Registered!</h3>
                       <p style={{ color: T.stone, fontSize: 13, lineHeight: 1.5, maxWidth: 420, margin: "0 auto" }}>
                         Your request has been successfully registered. Save your booking card below.
                       </p>
@@ -658,7 +611,7 @@ export default function BookingModal({ isOpen, onClose }) {
                               fontSize: 10,
                               fontWeight: 700
                             }}>
-                              ⏳ Awaiting Verification
+                              <FiClock size={10} style={{ marginRight: 2 }} /> Awaiting Verification
                             </span>
                           </div>
                         </div>
@@ -688,14 +641,14 @@ export default function BookingModal({ isOpen, onClose }) {
                           gap: 6,
                           transition: "all 0.12s"
                         }}>
-                          📥 Download Card
+                          <FiDownload /> Download Card
                         </button>
                       </div>
                     </div>
 
                     {/* Call Notice Info */}
                     <div style={{ display: "flex", gap: 10, background: "#dbeafe", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
-                      <div style={{ fontSize: 20, flexShrink: 0 }}>📞</div>
+                      <div style={{ color: "#1e40af", fontSize: 20, flexShrink: 0 }}><FiPhoneCall /></div>
                       <div>
                         <div style={{ color: "#1e40af", fontWeight: 700, fontSize: 13, marginBottom: 2 }}>We'll Call You to Confirm</div>
                         <div style={{ color: "#1e3a8a", fontSize: 12, lineHeight: 1.5 }}>
@@ -712,7 +665,7 @@ export default function BookingModal({ isOpen, onClose }) {
                         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                           onClick={handleLookup} disabled={!lookupRef.trim() || looking}
                           style={{ background: T.accent, border: "none", borderRadius: 8, padding: "10px 18px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
-                          {looking ? "…" : "View →"}
+                          {looking ? "…" : "View"}
                         </motion.button>
                       </div>
                       {lookupError && <div style={{ color: "#991b1b", fontSize: 12, marginTop: 6 }}>{lookupError}</div>}
@@ -725,7 +678,7 @@ export default function BookingModal({ isOpen, onClose }) {
                   <motion.div key="s3" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.28 }}>
                     {/* Ref header */}
                     <div style={{ display: "flex", alignItems: "center", gap: 14, background: T.sand, border: `1px solid ${T.line}`, borderRadius: 12, padding: "14px 18px", marginBottom: 16 }}>
-                      <div style={{ fontSize: 28 }}>📅</div>
+                      <div style={{ color: T.accent, fontSize: 24 }}><FiCalendar /></div>
                       <div>
                         <div style={{ fontSize: 10, color: T.stone, textTransform: "uppercase", letterSpacing: 1 }}>Booking Reference</div>
                         <div style={{ color: T.accent, fontWeight: 900, fontSize: 20, letterSpacing: 3, fontFamily: "monospace" }}>{lookupResult.bookingRef}</div>
@@ -733,7 +686,11 @@ export default function BookingModal({ isOpen, onClose }) {
                       <div style={{ marginLeft: "auto" }}>
                         {(() => {
                           const cfg = STATUS_CONFIG[lookupResult.status] || STATUS_CONFIG.pending;
-                          return <span style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>{cfg.icon} {cfg.label}</span>;
+                          return (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>
+                              {cfg.icon} {cfg.label}
+                            </span>
+                          );
                         })()}
                       </div>
                     </div>
@@ -755,21 +712,21 @@ export default function BookingModal({ isOpen, onClose }) {
 
                     {lookupResult.meetingLink && (
                       <div style={{ background: "#dbeafe", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 14px", marginBottom: 10 }}>
-                        <div style={{ fontSize: 10, color: "#1e40af", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>🔗 Meeting Link</div>
+                        <div style={{ fontSize: 10, color: "#1e40af", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}><FiLink /> Meeting Link</div>
                         <a href={lookupResult.meetingLink} target="_blank" rel="noopener noreferrer" style={{ color: "#1e40af", fontSize: 13, wordBreak: "break-all" }}>{lookupResult.meetingLink}</a>
                       </div>
                     )}
 
                     {lookupResult.siteAddress && lookupResult.meetingType === "site_visit" && (
                       <div style={{ background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 14px", marginBottom: 10 }}>
-                        <div style={{ fontSize: 10, color: "#166534", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>📍 Meeting Location</div>
+                        <div style={{ fontSize: 10, color: "#166534", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}><FiMapPin /> Meeting Location</div>
                         <div style={{ color: "#14532d", fontSize: 13 }}>{lookupResult.siteAddress}</div>
                       </div>
                     )}
 
                     {lookupResult.confirmedNote && (
                       <div style={{ background: `${T.accent}0f`, border: `1px solid ${T.accent}33`, borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
-                        <div style={{ fontSize: 10, color: T.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>📝 Instructions from HAVI'S DESIGN</div>
+                        <div style={{ fontSize: 10, color: T.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}><FiFileText /> Instructions from HAVI'S DESIGN</div>
                         <div style={{ color: T.ink, fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-line" }}>{lookupResult.confirmedNote}</div>
                       </div>
                     )}

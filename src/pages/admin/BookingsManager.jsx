@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatTimeSlot } from "../../components/booking/BookingModal";
+import { 
+  FiClock, FiPhoneCall, FiCheckCircle, FiAward, FiXCircle, 
+  FiCoffee, FiMapPin, FiCompass, FiBriefcase, FiUser, 
+  FiCalendar, FiMail, FiTrash2, FiSearch, FiRefreshCw,
+  FiChevronLeft, FiChevronRight, FiEdit2, FiInfo, FiPlusSquare,
+  FiFileText, FiSliders, FiLink, FiCheckSquare, FiPlus, FiAlertCircle, FiInbox
+} from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
 const TOKEN = () => localStorage.getItem("havi_admin_token");
@@ -10,11 +17,11 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 const DAYS = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
 
 const STATUS_CFG = {
-  pending:   { bg: "#fef3c7", text: "#92400e", border: "#fde68a", label: "Pending",   icon: "⏳" },
-  verified:  { bg: "#dbeafe", text: "#1e40af", border: "#bfdbfe", label: "Verified",  icon: "📞" },
-  confirmed: { bg: "#dcfce7", text: "#166534", border: "#bbf7d0", label: "Confirmed", icon: "✅" },
-  completed: { bg: "#f3e8ff", text: "#6b21a8", border: "#e9d5ff", label: "Completed", icon: "🎉" },
-  cancelled: { bg: "#fee2e2", text: "#991b1b", border: "#fecaca", label: "Cancelled", icon: "❌" },
+  pending:   { bg: "#fef3c7", text: "#92400e", border: "#fde68a", label: "Pending",   icon: <FiClock size={12} style={{ display: "inline-block", verticalAlign: "middle" }} /> },
+  verified:  { bg: "#dbeafe", text: "#1e40af", border: "#bfdbfe", label: "Verified",  icon: <FiPhoneCall size={12} style={{ display: "inline-block", verticalAlign: "middle" }} /> },
+  confirmed: { bg: "#dcfce7", text: "#166534", border: "#bbf7d0", label: "Confirmed", icon: <FiCheckCircle size={12} style={{ display: "inline-block", verticalAlign: "middle" }} /> },
+  completed: { bg: "#f3e8ff", text: "#6b21a8", border: "#e9d5ff", label: "Completed", icon: <FiAward size={12} style={{ display: "inline-block", verticalAlign: "middle" }} /> },
+  cancelled: { bg: "#fee2e2", text: "#991b1b", border: "#fecaca", label: "Cancelled", icon: <FiXCircle size={12} style={{ display: "inline-block", verticalAlign: "middle" }} /> },
 };
 
 const MEETING_LABELS = {
@@ -25,10 +32,10 @@ const MEETING_LABELS = {
 };
 
 const MEETING_ICONS = {
-  free_consultation: "☕",
-  site_visit:        "🏗️",
-  design_review:     "🎨",
-  project_kickoff:   "🚀",
+  free_consultation: <FiCoffee size={14} style={{ marginRight: 4, verticalAlign: "middle" }} />,
+  site_visit:        <FiMapPin size={14} style={{ marginRight: 4, verticalAlign: "middle" }} />,
+  design_review:     <FiCompass size={14} style={{ marginRight: 4, verticalAlign: "middle" }} />,
+  project_kickoff:   <FiBriefcase size={14} style={{ marginRight: 4, verticalAlign: "middle" }} />,
 };
 
 const ALL_SLOTS = [
@@ -166,7 +173,7 @@ function BookingDetailDrawer({ booking, onClose, onUpdate }) {
             </div>
             <div style={{ color: T.ink, fontWeight: 700, fontSize: 18 }}>{booking.name}</div>
             <div style={{ color: T.stone, fontSize: 12, marginTop: 2 }}>
-              {MEETING_ICONS[booking.meetingType]} {MEETING_LABELS[booking.meetingType] || booking.meetingType}
+              {MEETING_LABELS[booking.meetingType] || booking.meetingType}
               {" · "}{fmtDate(booking.date)} at {booking.timeSlot}
             </div>
           </div>
@@ -182,19 +189,19 @@ function BookingDetailDrawer({ booking, onClose, onUpdate }) {
               background: T.accent,
               border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
             }}>
-            {verifying ? "Verifying…" : "📞 Mark as Phone Verified"}
+            {verifying ? "Verifying…" : "Mark as Phone Verified"}
           </motion.button>
         )}
         {booking.verifiedAt && (
           <div style={{ marginTop: 10, fontSize: 12, color: "#1e40af", background: "#dbeafe", border: "1px solid #bfdbfe", borderRadius: 8, padding: "6px 12px" }}>
-            📞 Verified on {fmtDateTime(booking.verifiedAt)}
+            Verified on {fmtDateTime(booking.verifiedAt)}
           </div>
         )}
       </div>
 
       {/* Tabs */}
       <div style={{ display: "flex", borderBottom: `1px solid ${T.line}`, flexShrink: 0 }}>
-        {[["details", "📋 Details"], ["client", "👤 Client"], ["manage", "⚙️ Manage"]].map(([id, label]) => (
+        {[["details", "Details"], ["client", "Client"], ["manage", "Manage"]].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{
               flex: 1, padding: "12px 8px", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
@@ -214,11 +221,11 @@ function BookingDetailDrawer({ booking, onClose, onUpdate }) {
           {/* ── Details Tab ── */}
           {tab === "details" && (
             <motion.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <InfoRow label="Meeting Type" value={`${MEETING_ICONS[booking.meetingType]} ${MEETING_LABELS[booking.meetingType] || booking.meetingType}`} />
+              <InfoRow label="Meeting Type" value={<div style={{ display: "flex", alignItems: "center" }}>{MEETING_ICONS[booking.meetingType]} {MEETING_LABELS[booking.meetingType] || booking.meetingType}</div>} />
               <InfoRow label="Date & Time" value={`${fmtDate(booking.date)} at ${booking.timeSlot}`} />
               <InfoRow label="Status" value={<StatusBadge status={status} />} />
-              {booking.siteAddress && <InfoRow label="Site Address 📍" value={booking.siteAddress} highlight />}
-              {booking.meetingLink && <InfoRow label="Meeting Link 🔗" value={<a href={booking.meetingLink} target="_blank" rel="noopener noreferrer" style={{ color: "#1e40af", wordBreak: "break-all" }}>{booking.meetingLink}</a>} />}
+              {booking.siteAddress && <InfoRow label="Site Address" value={booking.siteAddress} highlight />}
+              {booking.meetingLink && <InfoRow label="Meeting Link" value={<a href={booking.meetingLink} target="_blank" rel="noopener noreferrer" style={{ color: "#1e40af", wordBreak: "break-all" }}>{booking.meetingLink}</a>} />}
               <InfoRow label="Budget Range" value={booking.budget || "Not specified"} />
               {booking.services?.length > 0 && (
                 <div style={{ marginBottom: 14 }}>
@@ -255,8 +262,8 @@ function BookingDetailDrawer({ booking, onClose, onUpdate }) {
               {booking.siteAddress && <InfoRow label="Site Address" value={booking.siteAddress} highlight />}
               <InfoRow label="Budget Range" value={booking.budget || "Not specified"} />
               <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-                <a href={`tel:${booking.phone}`} style={{ flex: 1, textDecoration: "none", textAlign: "center", background: "#166534", color: "#fff", padding: "10px 0", borderRadius: 8, fontSize: 13, fontWeight: 700 }}>📞 Call Client</a>
-                <a href={`mailto:${booking.email}`} style={{ flex: 1, textDecoration: "none", textAlign: "center", background: T.accent, color: "#fff", padding: "10px 0", borderRadius: 8, fontSize: 13, fontWeight: 700 }}>✉️ Email Client</a>
+                <a href={`tel:${booking.phone}`} style={{ flex: 1, textDecoration: "none", textAlign: "center", background: "#166534", color: "#fff", padding: "10px 0", borderRadius: 8, fontSize: 13, fontWeight: 700 }}>Call Client</a>
+                <a href={`mailto:${booking.email}`} style={{ flex: 1, textDecoration: "none", textAlign: "center", background: T.accent, color: "#fff", padding: "10px 0", borderRadius: 8, fontSize: 13, fontWeight: 700 }}>Email Client</a>
               </div>
             </motion.div>
           )}
@@ -301,10 +308,10 @@ function BookingDetailDrawer({ booking, onClose, onUpdate }) {
               {/* Actions */}
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
                 <button onClick={save} disabled={saving} style={{ width: "100%", background: T.accent, color: "#fff", padding: "11px 0", borderRadius: 8, border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                  {saving ? "Saving Changes…" : "💾 Save Changes"}
+                  {saving ? "Saving Changes…" : "Save Changes"}
                 </button>
                 <button onClick={deleteBooking} disabled={deleting} style={{ width: "100%", background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.3)", color: "#dc2626", padding: "10px 0", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                  {deleting ? "Deleting…" : "🗑️ Delete Booking"}
+                  {deleting ? "Deleting…" : "Delete Booking"}
                 </button>
               </div>
             </motion.div>
@@ -513,7 +520,7 @@ export default function BookingsManager() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 14 }}>
         <div>
-          <h1 style={{ color: T.ink, fontWeight: 800, fontSize: 26, margin: "0 0 4px", fontFamily: "Fraunces, Georgia, serif" }}>📅 Bookings Manager</h1>
+          <h1 style={{ color: T.ink, fontWeight: 800, fontSize: 26, margin: "0 0 4px", fontFamily: "Fraunces, Georgia, serif" }}>Bookings Manager</h1>
           <p style={{ color: T.stone, fontSize: 14, margin: 0 }}>Manage consultation requests, verify clients, and reserve/block calendar schedules.</p>
         </div>
 
@@ -541,8 +548,8 @@ export default function BookingsManager() {
           {/* List vs Calendar Mode selector */}
           <div style={{ display: "flex", background: T.sand, borderRadius: 10, padding: 3, border: `1px solid ${T.line}` }}>
             {[
-              { id: "list", label: "📋 List View" },
-              { id: "calendar", label: "📅 Calendar View" }
+              { id: "list", label: "List View" },
+              { id: "calendar", label: "Calendar View" }
             ].map(mode => (
               <button key={mode.id} onClick={() => setViewMode(mode.id)}
                 style={{
@@ -580,7 +587,7 @@ export default function BookingsManager() {
           <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
             <input
               value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-              placeholder="🔍 Search name, email, ref, phone…"
+              placeholder="Search name, email, ref, phone…"
               style={{ ...inputStyle, flex: "1 1 200px", minWidth: 180 }}
             />
             <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }} style={{ ...inputStyle, minWidth: 130 }}>
@@ -591,7 +598,9 @@ export default function BookingsManager() {
               <option value="">All Meeting Types</option>
               {Object.entries(MEETING_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
-            <button onClick={load} style={{ ...inputStyle, cursor: "pointer", background: T.sand }}>↻ Refresh</button>
+            <button onClick={load} style={{ ...inputStyle, cursor: "pointer", background: T.sand, display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <FiRefreshCw /> Refresh
+            </button>
           </div>
 
           {/* Table */}
@@ -607,7 +616,7 @@ export default function BookingsManager() {
               <div style={{ padding: 40, textAlign: "center", color: T.stone }}>Loading bookings…</div>
             ) : bookings.length === 0 ? (
               <div style={{ padding: 60, textAlign: "center" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+                <div style={{ fontSize: 32, marginBottom: 12, color: T.stone }}><FiInbox /></div>
                 <div style={{ color: T.stone, fontSize: 14 }}>No bookings found</div>
               </div>
             ) : (
@@ -634,7 +643,7 @@ export default function BookingsManager() {
                       <span>{MEETING_ICONS[b.meetingType]}</span>
                       <span>{MEETING_LABELS[b.meetingType] || b.meetingType}</span>
                     </div>
-                    {b.siteAddress && <div style={{ fontSize: 10, color: T.accent, marginTop: 2 }}>📍 {b.siteAddress.slice(0, 30)}…</div>}
+                    {b.siteAddress && <div style={{ fontSize: 10, color: T.accent, marginTop: 2, display: "inline-flex", alignItems: "center", gap: 4 }}><FiMapPin size={10} /> {b.siteAddress.slice(0, 30)}…</div>}
                   </div>
                   <div style={{ alignSelf: "center" }}>
                     <div style={{ fontSize: 12, color: T.ink, fontWeight: 600 }}>{fmtDate(b.date)}</div>
@@ -642,7 +651,7 @@ export default function BookingsManager() {
                   </div>
                   <div style={{ alignSelf: "center" }}>
                     <StatusBadge status={b.status} />
-                    {b.verifiedAt && <div style={{ fontSize: 10, color: "#1e40af", marginTop: 3, fontWeight: 600 }}>📞 Verified</div>}
+                    {b.verifiedAt && <div style={{ fontSize: 10, color: "#1e40af", marginTop: 3, fontWeight: 600 }}>Verified</div>}
                   </div>
                   <div style={{ alignSelf: "center" }}>
                     <button onClick={e => { e.stopPropagation(); setSelected(b); }}
@@ -652,7 +661,7 @@ export default function BookingsManager() {
                         borderRadius: 8, padding: "5px 12px", cursor: "pointer",
                         color: T.accent, fontSize: 12, fontWeight: 600,
                       }}>
-                      {selected?.id === b.id ? "✓ Open" : "View →"}
+                      {selected?.id === b.id ? "Open" : "View"}
                     </button>
                   </div>
                 </motion.div>
@@ -739,10 +748,10 @@ export default function BookingsManager() {
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 700, color: isBlocked ? "#dc2626" : T.ink }}>{displayTime}</div>
                           <div style={{ fontSize: 12, fontWeight: 600, color: T.stone, marginTop: 2 }}>
-                            {isBlocked ? "🚫 Blocked / Reserved" : `👤 ${b.name}`}
+                            {isBlocked ? "Blocked / Reserved" : b.name}
                           </div>
                           {!isBlocked && (
-                            <div style={{ fontSize: 10, color: T.stone, marginTop: 2 }}>
+                            <div style={{ fontSize: 10, color: T.stone, marginTop: 2, display: "flex", alignItems: "center" }}>
                               {MEETING_ICONS[b.meetingType]} {MEETING_LABELS[b.meetingType]}
                             </div>
                           )}
@@ -779,14 +788,14 @@ export default function BookingsManager() {
                     }}>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{displayTime}</div>
-                        <div style={{ fontSize: 11, color: "#166534", marginTop: 2, fontWeight: 600 }}>🟢 Available / Free</div>
+                        <div style={{ fontSize: 11, color: "#166534", marginTop: 2, fontWeight: 600 }}>Available / Free</div>
                       </div>
                       <button onClick={() => handleBlockSlot(slot)} disabled={blockingSlot === slot}
                         style={{
                           background: T.sand, border: `1px solid ${T.line}`, borderRadius: 8, padding: "6px 12px",
                           color: T.stone, fontSize: 11, fontWeight: 700, cursor: "pointer",
                         }}>
-                        {blockingSlot === slot ? "…" : "🚫 Block Time"}
+                        {blockingSlot === slot ? "…" : "Block Time"}
                       </button>
                     </div>
                   );

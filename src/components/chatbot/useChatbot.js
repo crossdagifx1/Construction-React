@@ -5,10 +5,10 @@ const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://
 const SESSION_KEY = "havi_chat_session_id";
 
 const QUICK_ACTIONS = [
-  { label: "📅 Book a consultation", message: "I'd like to book a free consultation." },
-  { label: "🏠 Our services", message: "What services do you offer?" },
-  { label: "💰 Pricing info", message: "Can you tell me about your pricing?" },
-  { label: "📍 Location & contact", message: "Where are you located and how can I contact you?" },
+  { label: "Book a consultation", message: "I'd like to book a free consultation." },
+  { label: "Our services", message: "What services do you offer?" },
+  { label: "Pricing info", message: "Can you tell me about your pricing?" },
+  { label: "Location & contact", message: "Where are you located and how can I contact you?" },
 ];
 
 export function useChatbot() {
@@ -17,7 +17,7 @@ export function useChatbot() {
     {
       id: "welcome",
       role: "assistant",
-      content: "👋 Hi! I'm HAVI, your design assistant. How can I help you today?",
+      content: "Hi! I'm HAVI, your design assistant. How can I help you today?",
       createdAt: new Date(),
     },
   ]);

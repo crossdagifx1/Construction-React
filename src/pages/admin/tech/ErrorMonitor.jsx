@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../../../lib/api";
+import { 
+  FiAlertTriangle, FiPause, FiPlay, FiRefreshCw, FiTrash2, 
+  FiCheckCircle, FiCheck, FiX, FiInfo, FiActivity 
+} from "react-icons/fi";
 
 const C = {
   bg: "#F6F3ED", surface: "#FFFFFF", surface2: "#EFE9DF",
@@ -110,22 +114,28 @@ export default function ErrorMonitor() {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #ef4444, #f59e0b)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🚨</div>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(239,68,68,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: C.red }}>
+              <FiAlertTriangle />
+            </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>Error Monitor</h1>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, fontFamily: "Fraunces, Georgia, serif" }}>Error Monitor</h1>
               <p style={{ margin: 0, fontSize: 12, color: C.muted }}>
                 {total} logs · Last refresh: {lastRefresh.toLocaleTimeString()}
-                <span style={{ marginLeft: 8, width: 8, height: 8, borderRadius: "50%", background: autoRefresh ? C.green : C.muted, boxShadow: autoRefresh ? `0 0 6px ${C.green}` : "none", display: "inline-block", verticalAlign: "middle" }} />
+                <span style={{ marginLeft: 8, width: 8, height: 8, borderRadius: "50%", background: autoRefresh ? C.green : C.muted, display: "inline-block", verticalAlign: "middle" }} />
                 {autoRefresh ? " Live" : " Paused"}
               </p>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button onClick={() => setAutoRefresh((v) => !v)} style={{ ...inputStyle, cursor: "pointer", color: autoRefresh ? C.green : C.muted }}>
-              {autoRefresh ? "⏸ Pause" : "▶ Resume"} Auto-Refresh
+            <button onClick={() => setAutoRefresh((v) => !v)} style={{ ...inputStyle, cursor: "pointer", color: autoRefresh ? C.green : C.muted, display: "inline-flex", alignItems: "center", gap: 6 }}>
+              {autoRefresh ? <FiPause /> : <FiPlay />} Auto-Refresh
             </button>
-            <button onClick={load} style={{ ...inputStyle, cursor: "pointer" }}>↻ Refresh</button>
-            <button onClick={handleClearResolved} style={{ ...inputStyle, cursor: "pointer", color: C.red, borderColor: "rgba(239,68,68,0.3)" }}>🗑 Clear Resolved</button>
+            <button onClick={load} style={{ ...inputStyle, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <FiRefreshCw /> Refresh
+            </button>
+            <button onClick={handleClearResolved} style={{ ...inputStyle, cursor: "pointer", color: C.red, borderColor: "rgba(239,68,68,0.3)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <FiTrash2 /> Clear Resolved
+            </button>
           </div>
         </div>
       </div>
@@ -155,7 +165,7 @@ export default function ErrorMonitor() {
           {loading && <div style={{ padding: 20, color: C.muted, fontSize: 13 }}>Loading…</div>}
           {!loading && errors.length === 0 && (
             <div style={{ padding: 40, textAlign: "center", color: C.green }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+              <div style={{ fontSize: 32, marginBottom: 8, color: C.green }}><FiCheckCircle /></div>
               <div style={{ fontWeight: 700 }}>No errors found</div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>System is running cleanly</div>
             </div>
@@ -168,7 +178,7 @@ export default function ErrorMonitor() {
                 padding: "14px 16px",
                 borderBottom: `1px solid ${C.border}`,
                 cursor: "pointer",
-                background: selected?.id === err.id ? "rgba(124,58,237,0.08)" : "transparent",
+                background: selected?.id === err.id ? `${C.accent}12` : "transparent",
                 transition: "background 0.15s",
               }}
             >
@@ -177,16 +187,16 @@ export default function ErrorMonitor() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <SeverityBadge severity={err.severity} />
                     {err.route && <code style={{ fontSize: 11, color: C.cyan, background: "rgba(6,182,212,0.1)", padding: "1px 6px", borderRadius: 4 }}>{err.method} {err.route}</code>}
-                    {err.resolved && <span style={{ fontSize: 10, color: C.green, fontWeight: 600 }}>✓ resolved</span>}
+                    {err.resolved && <span style={{ fontSize: 10, color: C.green, fontWeight: 600 }}>Resolved</span>}
                   </div>
                   <div style={{ fontSize: 13, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{err.message}</div>
                   <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>{new Date(err.createdAt).toLocaleString()}</div>
                 </div>
                 <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                   {!err.resolved && (
-                    <button onClick={(e) => { e.stopPropagation(); handleResolve(err.id); }} style={{ padding: "3px 8px", borderRadius: 6, border: `1px solid rgba(16,185,129,0.3)`, background: "rgba(16,185,129,0.1)", color: C.green, fontSize: 11, cursor: "pointer" }}>✓</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleResolve(err.id); }} style={{ padding: "4px 8px", borderRadius: 6, border: `1px solid rgba(16,185,129,0.3)`, background: "rgba(16,185,129,0.1)", color: C.green, fontSize: 11, cursor: "pointer", display: "inline-flex", alignItems: "center" }}><FiCheck /></button>
                   )}
-                  <button onClick={(e) => { e.stopPropagation(); handleDelete(err.id); }} style={{ padding: "3px 8px", borderRadius: 6, border: `1px solid rgba(239,68,68,0.3)`, background: "rgba(239,68,68,0.1)", color: C.red, fontSize: 11, cursor: "pointer" }}>✕</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(err.id); }} style={{ padding: "4px 8px", borderRadius: 6, border: `1px solid rgba(239,68,68,0.3)`, background: "rgba(239,68,68,0.1)", color: C.red, fontSize: 11, cursor: "pointer", display: "inline-flex", alignItems: "center" }}><FiX /></button>
                 </div>
               </div>
             </div>
@@ -210,7 +220,7 @@ export default function ErrorMonitor() {
                 <div style={{ marginTop: 8, fontSize: 15, fontWeight: 700, color: C.text }}>{selected.message}</div>
                 <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{new Date(selected.createdAt).toLocaleString()}</div>
               </div>
-              <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", color: C.muted, fontSize: 18, cursor: "pointer" }}>✕</button>
+              <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", color: C.muted, fontSize: 18, cursor: "pointer", display: "inline-flex", alignItems: "center" }}><FiX /></button>
             </div>
             {selected.route && (
               <div style={{ marginBottom: 12 }}>
@@ -232,9 +242,9 @@ export default function ErrorMonitor() {
             )}
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
               {!selected.resolved && (
-                <button onClick={() => handleResolve(selected.id)} style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: `1px solid ${C.green}`, background: "rgba(16,185,129,0.12)", color: C.green, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>✓ Mark Resolved</button>
+                <button onClick={() => handleResolve(selected.id)} style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: `1px solid ${C.green}`, background: "rgba(16,185,129,0.12)", color: C.green, fontWeight: 700, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}><FiCheck /> Mark Resolved</button>
               )}
-              <button onClick={() => handleDelete(selected.id)} style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: `1px solid ${C.red}`, background: "rgba(239,68,68,0.12)", color: C.red, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>🗑 Delete</button>
+              <button onClick={() => handleDelete(selected.id)} style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: `1px solid ${C.red}`, background: "rgba(239,68,68,0.12)", color: C.red, fontWeight: 700, fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}><FiTrash2 /> Delete</button>
             </div>
           </div>
         )}

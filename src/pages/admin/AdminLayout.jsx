@@ -3,6 +3,12 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 
+import { 
+  FiGrid, FiBell, FiCalendar, FiMail, FiMessageSquare, 
+  FiLayout, FiInfo, FiSliders, FiActivity, FiBriefcase, 
+  FiStar, FiBookOpen, FiTag, FiPhone, FiCpu, FiAlertTriangle, 
+  FiFileText, FiLayers, FiLogOut 
+} from "react-icons/fi";
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
 
@@ -10,48 +16,48 @@ const NAV_GROUPS = [
   {
     label: "Overview",
     items: [
-      { to: "/admin", label: "Dashboard", icon: "📊", end: true },
-      { to: "/admin/notifications", label: "Notifications", icon: "🔔" },
+      { to: "/admin", label: "Dashboard", icon: <FiGrid size={16} />, end: true },
+      { to: "/admin/notifications", label: "Notifications", icon: <FiBell size={16} /> },
     ],
   },
   {
     label: "Bookings & Comms",
     items: [
-      { to: "/admin/bookings", label: "Bookings", icon: "📅" },
-      { to: "/admin/messages", label: "Messages", icon: "✉️" },
-      { to: "/admin/chat-logs", label: "Chat Logs", icon: "💬" },
+      { to: "/admin/bookings", label: "Bookings", icon: <FiCalendar size={16} /> },
+      { to: "/admin/messages", label: "Messages", icon: <FiMail size={16} /> },
+      { to: "/admin/chat-logs", label: "Chat Logs", icon: <FiMessageSquare size={16} /> },
     ],
   },
   {
     label: "Content",
     items: [
-      { to: "/admin/hero", label: "Hero Section", icon: "🖼️" },
-      { to: "/admin/about", label: "About", icon: "ℹ️" },
-      { to: "/admin/services", label: "Services", icon: "⚙️" },
-      { to: "/admin/process", label: "Process Steps", icon: "🔄" },
-      { to: "/admin/projects", label: "Projects", icon: "🏗️" },
-      { to: "/admin/testimonials", label: "Testimonials", icon: "⭐" },
-      { to: "/admin/blogs", label: "Blog Posts", icon: "📝" },
-      { to: "/admin/ads", label: "Listings", icon: "📌" },
+      { to: "/admin/hero", label: "Hero Section", icon: <FiLayout size={16} /> },
+      { to: "/admin/about", label: "About", icon: <FiInfo size={16} /> },
+      { to: "/admin/services", label: "Services", icon: <FiLayers size={16} /> },
+      { to: "/admin/process", label: "Process Steps", icon: <FiSliders size={16} /> },
+      { to: "/admin/projects", label: "Projects", icon: <FiBriefcase size={16} /> },
+      { to: "/admin/testimonials", label: "Testimonials", icon: <FiStar size={16} /> },
+      { to: "/admin/blogs", label: "Blog Posts", icon: <FiBookOpen size={16} /> },
+      { to: "/admin/ads", label: "Listings", icon: <FiTag size={16} /> },
     ],
   },
   {
     label: "Settings",
     items: [
-      { to: "/admin/contact", label: "Contact Info", icon: "📞" },
+      { to: "/admin/contact", label: "Contact Info", icon: <FiPhone size={16} /> },
     ],
   },
 ];
 
 // Tech Admin nav — only shown to TECHNICAL_ADMIN role
 const TECH_NAV_GROUP = {
-  label: "⚡ Technical",
+  label: "Technical",
   items: [
-    { to: "/admin/tech",         label: "Tech Dashboard", icon: "⚡", end: true },
-    { to: "/admin/tech/ai",      label: "AI Manager",     icon: "🤖" },
-    { to: "/admin/tech/errors",  label: "Error Monitor",  icon: "🚨" },
-    { to: "/admin/tech/reports", label: "Report Center",  icon: "📊" },
-    { to: "/admin/tech/system",  label: "System Health",  icon: "🏥" },
+    { to: "/admin/tech",         label: "Tech Dashboard", icon: <FiSliders size={16} />, end: true },
+    { to: "/admin/tech/ai",      label: "AI Manager",     icon: <FiCpu size={16} /> },
+    { to: "/admin/tech/errors",  label: "Error Monitor",  icon: <FiAlertTriangle size={16} /> },
+    { to: "/admin/tech/reports", label: "Report Center",  icon: <FiFileText size={16} /> },
+    { to: "/admin/tech/system",  label: "System Health",  icon: <FiActivity size={16} /> },
   ],
 };
 
@@ -228,7 +234,7 @@ export default function AdminLayout() {
                     : "linear-gradient(135deg, #c8a96e, #a07840)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   color: "#fff", fontWeight: 700, fontSize: 13,
-                }}>{isTechAdmin ? "⚡" : "A"}</div>
+                }}>{isTechAdmin ? "T" : "A"}</div>
                 <div>
                   <div style={{ color: colors.text, fontSize: 13, fontWeight: 600 }}>
                     {admin?.name || "Admin"}
@@ -306,7 +312,7 @@ export default function AdminLayout() {
                   fontSize: 13, cursor: "pointer", fontFamily: "inherit",
                 }}
               >
-                🔍 Search...
+                Search...
                 <span style={{ marginLeft: "auto", fontSize: 10, opacity: 0.5 }}>⌘K</span>
               </button>
             )}
@@ -327,7 +333,7 @@ export default function AdminLayout() {
                 color: colors.text, fontSize: 16, display: "flex", alignItems: "center",
               }}
             >
-              🔔
+              <FiBell size={16} />
               {notifCount > 0 && (
                 <motion.span
                   initial={{ scale: 0 }} animate={{ scale: 1 }}

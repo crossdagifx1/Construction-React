@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../../../lib/api";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { 
+  FiSliders, FiRefreshCw, FiCpu, FiDatabase, FiAlertTriangle, 
+  FiMessageSquare, FiCalendar, FiFileText, FiActivity, FiSettings 
+} from "react-icons/fi";
 
 const C = {
   bg: "#F6F3ED",
@@ -45,7 +49,7 @@ const Card = ({ title, value, sub, color = C.accent, icon }) => (
         <div style={{ color: color, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{value}</div>
         {sub && <div style={{ color: C.muted, fontSize: 12, marginTop: 6 }}>{sub}</div>}
       </div>
-      <div style={{ fontSize: 28, opacity: 0.6 }}>{icon}</div>
+      <div style={{ fontSize: 24, color: color, opacity: 0.8 }}>{icon}</div>
     </div>
   </div>
 );
@@ -87,16 +91,18 @@ export default function TechDashboard() {
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${C.accent}, ${C.cyan})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>⚡</div>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: `${C.accent}15`, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: C.accent }}>
+            <FiSliders />
+          </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text }}>Technical Dashboard</h1>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text, fontFamily: "Fraunces, Georgia, serif" }}>Technical Dashboard</h1>
             <p style={{ margin: 0, fontSize: 13, color: C.muted }}>System overview · Last refreshed: {new Date().toLocaleTimeString()}</p>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
           {health && badge(health.overallStatus)}
-          <button onClick={load} style={{ padding: "4px 14px", borderRadius: 8, background: "rgba(124,58,237,0.12)", border: `1px solid ${C.accentGlow}`, color: C.accent, fontSize: 12, cursor: "pointer" }}>
-            ↻ Refresh
+          <button onClick={load} style={{ padding: "6px 14px", borderRadius: 8, background: C.surface2, border: `1px solid ${C.border}`, color: C.text, fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <FiRefreshCw /> Refresh
           </button>
         </div>
       </div>
@@ -107,19 +113,21 @@ export default function TechDashboard() {
         <>
           {/* KPI Cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
-            <Card title="AI Calls (24h)" value={aiStats?.totalCalls ?? 0} sub={`${aiStats?.successRate ?? 0}% success rate`} color={C.cyan} icon="🤖" />
-            <Card title="Total Tokens" value={(aiStats?.totalTokens ?? 0).toLocaleString()} sub="consumed (24h)" color={C.gold} icon="🪙" />
-            <Card title="Error Logs" value={stats?.system?.errorLogs ?? 0} sub="all time" color={C.red} icon="🚨" />
-            <Card title="Chat Sessions" value={stats?.engagement?.chatSessions ?? 0} sub={`${stats?.engagement?.chatMessages ?? 0} messages`} color={C.accent} icon="💬" />
-            <Card title="Bookings" value={stats?.engagement?.bookings ?? 0} sub="total bookings" color={C.green} icon="📅" />
-            <Card title="Report Jobs" value={stats?.system?.reportJobs ?? 0} sub="generated" color={C.muted} icon="📊" />
+            <Card title="AI Calls (24h)" value={aiStats?.totalCalls ?? 0} sub={`${aiStats?.successRate ?? 0}% success rate`} color={C.cyan} icon={<FiCpu />} />
+            <Card title="Total Tokens" value={(aiStats?.totalTokens ?? 0).toLocaleString()} sub="consumed (24h)" color={C.gold} icon={<FiDatabase />} />
+            <Card title="Error Logs" value={stats?.system?.errorLogs ?? 0} sub="all time" color={C.red} icon={<FiAlertTriangle />} />
+            <Card title="Chat Sessions" value={stats?.engagement?.chatSessions ?? 0} sub={`${stats?.engagement?.chatMessages ?? 0} messages`} color={C.accent} icon={<FiMessageSquare />} />
+            <Card title="Bookings" value={stats?.engagement?.bookings ?? 0} sub="total bookings" color={C.green} icon={<FiCalendar />} />
+            <Card title="Report Jobs" value={stats?.system?.reportJobs ?? 0} sub="generated" color={C.muted} icon={<FiFileText />} />
           </div>
 
           {/* Two-column: Provider Status + AI Chart */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 16, marginBottom: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
             {/* Service Health */}
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: C.text }}>🏥 Service Health</div>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: C.text, display: "flex", alignItems: "center", gap: 6 }}>
+                <FiActivity color={C.accent} /> Service Health
+              </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {serviceRows.map((row) => (
                   <div key={row.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: C.surface2, borderRadius: 10 }}>
@@ -135,7 +143,9 @@ export default function TechDashboard() {
 
             {/* AI Usage Chart */}
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: C.text }}>🤖 AI Calls by Provider (24h)</div>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: C.text, display: "flex", alignItems: "center", gap: 6 }}>
+                <FiCpu color={C.accent} /> AI Calls by Provider (24h)
+              </div>
               {providerData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={providerData} barCategoryGap="30%">
@@ -157,7 +167,9 @@ export default function TechDashboard() {
           {/* Env Audit */}
           {health?.env && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: C.text }}>⚙️ Environment Variables</div>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: C.text, display: "flex", alignItems: "center", gap: 6 }}>
+                <FiSettings color={C.accent} /> Environment Variables
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
                 {Object.entries(health.env).map(([key, val]) => (
                   <div key={key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 12px", background: C.surface2, borderRadius: 8 }}>
