@@ -58,6 +58,38 @@ function fmtDate(d) {
   return `${DAYS[date.getDay()]}, ${date.getDate()} ${MONTHS_SHORT[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+export function formatTimeSlot(slotStr, format) {
+  if (!slotStr) return "";
+  if (format === "24hr") return slotStr;
+  
+  const [hourStr, minStr] = slotStr.split(":");
+  const h = parseInt(hourStr, 10);
+  
+  if (format === "12hr") {
+    const ampm = h >= 12 ? "PM" : "AM";
+    const displayHour = h % 12 === 0 ? 12 : h % 12;
+    return `${displayHour.toString().padStart(2, '0')}:${minStr} ${ampm}`;
+  }
+  
+  if (format === "ethiopian") {
+    let ethHour = h >= 6 ? h - 6 : h + 6;
+    if (ethHour === 0) ethHour = 12;
+    
+    let label = "";
+    if (h >= 6 && h < 12) {
+      label = "ጠዋት (morning)";
+    } else if (h >= 12 && h < 18) {
+      label = "ከሰዓት (afternoon)";
+    } else if (h >= 18 && h < 24) {
+      label = "ማታ (night)";
+    } else {
+      label = "ሌሊት (night)";
+    }
+    return `${ethHour}:${minStr} ${label}`;
+  }
+  return slotStr;
+}
+
 // ── Step Progress Bar ─────────────────────────────────────────────────────────
 function StepBar({ step }) {
   const steps = ["Date & Time", "Your Details", "Submitted", "My Booking"];
@@ -95,7 +127,7 @@ function StepBar({ step }) {
 }
 
 // ── Calendar ──────────────────────────────────────────────────────────────────
-function Calendar({ selectedDate, onSelectDate, availability, fetchAvailability, loading }) {
+function Calendar({ selectedDate, onSelectDate, availability, fetchAvailability, loading, timeFormat, setTimeFormat }) {
   const today = useMemo(() => new Date(), []);
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
@@ -180,10 +212,34 @@ function Calendar({ selectedDate, onSelectDate, availability, fetchAvailability,
 
       {/* Time slots */}
       {selectedDate && (
-        <div style={{ flex: "1 1 140px", minWidth: 130 }}>
-          <div style={{ fontSize: 11, color: T.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+        <div style={{ flex: "1 1 140px", minWidth: 140 }}>
+          <div style={{ fontSize: 11, color: T.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
             {fmtDate(selectedDate instanceof Date ? selectedDate : selectedDate?.date)}
           </div>
+
+          {/* Time format selector */}
+          <div style={{ display: "flex", background: T.sand, borderRadius: 6, padding: 2, marginBottom: 10, gap: 2, border: `1px solid ${T.line}` }}>
+            {[
+              { id: "24hr", label: "24h" },
+              { id: "12hr", label: "12h" },
+              { id: "ethiopian", label: "ET (እጅ)" }
+            ].map(fmt => (
+              <button
+                key={fmt.id}
+                onClick={() => setTimeFormat(fmt.id)}
+                style={{
+                  flex: 1, padding: "4px 2px", border: "none", borderRadius: 4, fontSize: 9, fontWeight: 700,
+                  cursor: "pointer",
+                  background: timeFormat === fmt.id ? T.accent : "transparent",
+                  color: timeFormat === fmt.id ? "#fff" : T.stone,
+                  transition: "all 0.12s"
+                }}
+              >
+                {fmt.label}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
             <div style={{ color: T.stone, fontSize: 13, padding: 16, textAlign: "center" }}>Loading…</div>
           ) : availability?.available?.length === 0 ? (
@@ -203,7 +259,7 @@ function Calendar({ selectedDate, onSelectDate, availability, fetchAvailability,
                       color: isSel ? "#fff" : T.ink,
                       transition: "all 0.12s",
                     }}>
-                    {slot}
+                    {formatTimeSlot(slot, timeFormat)}
                   </motion.button>
                 );
               })}
@@ -223,6 +279,7 @@ export default function BookingModal({ isOpen, onClose }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [submittedBooking, setSubmittedBooking] = useState(null);
+  const [timeFormat, setTimeFormat] = useState("24hr");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [lookupRef, setLookupRef] = useState("");
   const [lookupError, setLookupError] = useState(null);
@@ -234,6 +291,7 @@ export default function BookingModal({ isOpen, onClose }) {
       setStep(0); setSelectedDate(null); setSelectedSlot(null);
       setSubmittedBooking(null); setLookupRef(""); setLookupError(null);
       setQrCodeUrl("");
+      setTimeFormat("24hr");
       setForm({ name: "", email: "", phone: "", city: "", meetingType: "free_consultation", siteAddress: "", budget: "", services: [], projectDescription: "", service: "" });
       reset();
     }, 300);
@@ -336,7 +394,7 @@ export default function BookingModal({ isOpen, onClose }) {
     drawField("Client Name", submittedBooking.name || form.name, 370);
     drawField("Meeting Type", MEETING_LABELS[submittedBooking.meetingType] || "Consultation", 440);
     drawField("Date", fmtDate(submittedBooking.date), 510);
-    drawField("Time Slot", submittedBooking.timeSlot, 580);
+    drawField("Time Slot", formatTimeSlot(submittedBooking.timeSlot, timeFormat), 580);
 
     // Draw QR Code
     if (qrCodeUrl) {
@@ -429,12 +487,12 @@ export default function BookingModal({ isOpen, onClose }) {
                 {/* ── STEP 0: CALENDAR ── */}
                 {step === 0 && (
                   <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.22 }}>
-                    <Calendar selectedDate={selectedDate} onSelectDate={setSelectedDate} availability={availability} fetchAvailability={fetchAvailability} loading={availabilityLoading} />
+                    <Calendar selectedDate={selectedDate} onSelectDate={setSelectedDate} availability={availability} fetchAvailability={fetchAvailability} loading={availabilityLoading} timeFormat={timeFormat} setTimeFormat={setTimeFormat} />
 
                     <div style={{ marginTop: 22, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${T.line}`, paddingTop: 18 }}>
                       <div style={{ fontSize: 13, color: T.stone }}>
                         {selectedDate && selectedSlot
-                          ? <span style={{ color: T.accent, fontWeight: 600 }}>📅 {fmtDate(selectedDate instanceof Date ? selectedDate : selectedDate.date)} · {selectedSlot}</span>
+                          ? <span style={{ color: T.accent, fontWeight: 600 }}>📅 {fmtDate(selectedDate instanceof Date ? selectedDate : selectedDate.date)} · {formatTimeSlot(selectedSlot, timeFormat)}</span>
                           : "Select a date then a time slot"}
                       </div>
                       <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
@@ -584,7 +642,7 @@ export default function BookingModal({ isOpen, onClose }) {
                           </div>
                           <div>
                             <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Time Slot</div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{submittedBooking?.timeSlot}</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{formatTimeSlot(submittedBooking?.timeSlot, timeFormat)}</div>
                           </div>
                           <div style={{ gridColumn: "span 2" }}>
                             <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Status</div>
@@ -686,7 +744,7 @@ export default function BookingModal({ isOpen, onClose }) {
                         { label: "Client Name",  value: lookupResult.name },
                         { label: "Meeting Type", value: MEETING_LABELS[lookupResult.meetingType] || lookupResult.meetingType },
                         { label: "Date",         value: fmtDate(lookupResult.date) },
-                        { label: "Time",         value: lookupResult.timeSlot },
+                        { label: "Time",         value: formatTimeSlot(lookupResult.timeSlot, timeFormat) },
                       ].map(({ label, value }) => (
                         <div key={label} style={{ background: T.sand, border: `1px solid ${T.line}`, borderRadius: 10, padding: "12px 14px" }}>
                           <div style={{ fontSize: 10, color: T.stone, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 3 }}>{label}</div>

@@ -85,7 +85,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const { admin, isTechAdmin } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("light");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -97,7 +97,7 @@ export default function AdminLayout() {
     navigate("/admin/login");
   };
 
-  const isDark = theme === "dark";
+  const isDark = false;
 
   const colors = {
     bg: isDark ? "#0c0b0a" : "#f4f1ec",
@@ -313,19 +313,7 @@ export default function AdminLayout() {
           </div>
 
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-            {/* Theme toggle */}
-            <button
-              onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}
-              style={{
-                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
-                border: `1px solid ${colors.sidebarBorder}`,
-                borderRadius: 10, padding: "7px 12px", cursor: "pointer",
-                color: colors.text, fontSize: 16,
-              }}
-              title="Toggle theme"
-            >
-              {isDark ? "☀️" : "🌙"}
-            </button>
+
 
             {/* Notifications */}
             <NavLink

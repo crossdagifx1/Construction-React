@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "../../../lib/api";
 
 const C = {
-  bg: "#060610", surface: "#0f0f1e", surface2: "#16162b",
-  border: "rgba(123,123,200,0.12)", accent: "#7c3aed",
-  cyan: "#06b6d4", green: "#10b981", red: "#ef4444",
-  amber: "#f59e0b", text: "#e2e2f0", muted: "#7b7b9a",
+  bg: "#F6F3ED", surface: "#FFFFFF", surface2: "#EFE9DF",
+  border: "#E2DCD0", accent: "#B98A4B",
+  cyan: "#0284c7", green: "#16a34a", red: "#dc2626",
+  amber: "#d97706", text: "#121110", muted: "#6F6A62",
 };
 
 const StatusDot = ({ status }) => {
