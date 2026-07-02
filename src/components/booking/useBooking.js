@@ -6,8 +6,10 @@ export function useBooking() {
   const [availability, setAvailability] = useState(null);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [looking, setLooking] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [lookupResult, setLookupResult] = useState(null);
 
   const fetchAvailability = useCallback(async (date) => {
     if (!date) return;
@@ -47,20 +49,42 @@ export function useBooking() {
     }
   }, []);
 
+  const lookupBooking = useCallback(async (ref) => {
+    setLooking(true);
+    setError(null);
+    setLookupResult(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/bookings/lookup/${ref.trim().toUpperCase()}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setLookupResult(data.booking);
+      return data.booking;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLooking(false);
+    }
+  }, []);
+
   const reset = useCallback(() => {
     setSuccess(false);
     setError(null);
     setAvailability(null);
+    setLookupResult(null);
   }, []);
 
   return {
     availability,
     availabilityLoading,
     submitting,
+    looking,
     success,
     error,
+    lookupResult,
     fetchAvailability,
     submitBooking,
+    lookupBooking,
     reset,
   };
 }

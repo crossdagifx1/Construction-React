@@ -119,7 +119,7 @@ async function callOpenRouter(modelId, messages) {
         temperature: 0.7,
       }),
     },
-    6000 // 6s per OpenRouter model
+    3500 // 3.5s per OpenRouter model
   );
 
   if (!res.ok) {
@@ -148,7 +148,7 @@ async function callGemini(systemPrompt, history, userMessage, modelId) {
     }));
 
   const timeout = new Promise((_, rej) =>
-    setTimeout(() => rej(new Error(`Gemini timeout (${modelId})`)), 6000)
+    setTimeout(() => rej(new Error(`Gemini timeout (${modelId})`)), 3500)
   );
 
   const chat = model.startChat({ history: geminiHistory });
@@ -174,9 +174,9 @@ const getStaticFallback = () =>
 export async function generateReply(systemPrompt, history, userMessage, sessionId = null) {
   const errors = [];
 
-  // ─── Step 1: OpenRouter — try top 3 enabled models ───────────────────
+  // ─── Step 1: OpenRouter — try top 2 enabled models ───────────────────
   if (openRouterActive && hasOpenRouter && modelQueue.length > 0) {
-    const tryModels = modelQueue.filter((m) => m.enabled).slice(0, 3);
+    const tryModels = modelQueue.filter((m) => m.enabled).slice(0, 2);
 
     const orMessages = [
       { role: "system", content: systemPrompt },

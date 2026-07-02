@@ -121,18 +121,29 @@ model AdPost {
 // ── Booking System ─────────────────────────────────────────────────────────
 
 model Booking {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  phone     String?
-  service   String   // "Interior Design" | "Renovation" | "Consultation" | "Other"
-  date      DateTime
-  timeSlot  String   // e.g. "09:00"
-  message   String?
-  status    String   @default("pending") // pending | confirmed | cancelled | completed
-  adminNote String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  bookingRef         String    @unique // e.g. "HV-3K9XP" — user lookup key
+  name               String
+  email              String
+  phone              String?
+  city               String?   // Neighborhood / city for site visits
+  service            String    // Primary service category
+  services           Json?     // Array of selected service tags
+  meetingType        String    @default("free_consultation") // "free_consultation" | "site_visit" | "design_review" | "project_kickoff"
+  date               DateTime
+  timeSlot           String    // e.g. "09:00"
+  siteAddress        String?   // For site visit meetings
+  budget             String?   // e.g. "ETB 50,000 – 100,000"
+  projectDescription String?   // Client's detailed description
+  message            String?   // Legacy short message
+  status             String    @default("pending") // pending | verified | confirmed | completed | cancelled
+  verifiedAt         DateTime? // Timestamp of phone verification
+  confirmedNote      String?   // Admin-written note shown to user after lookup (what to bring, etc.)
+  meetingLink        String?   // Zoom/Google Meet URL shown to user after confirmation
+  adminNote          String?   // Internal admin-only notes (NOT shown to user)
+  reminderSent       Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 // ── AI Chatbot ─────────────────────────────────────────────────────────────
