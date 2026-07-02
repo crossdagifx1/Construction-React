@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBooking } from "./useBooking";
+import QRCode from "qrcode";
 
 // ── Design tokens (matches landing page) ─────────────────────────────────────
 const T = {
@@ -222,6 +223,7 @@ export default function BookingModal({ isOpen, onClose }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [submittedBooking, setSubmittedBooking] = useState(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [lookupRef, setLookupRef] = useState("");
   const [lookupError, setLookupError] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", meetingType: "free_consultation", siteAddress: "", budget: "", services: [], projectDescription: "", service: "" });
@@ -231,6 +233,7 @@ export default function BookingModal({ isOpen, onClose }) {
     setTimeout(() => {
       setStep(0); setSelectedDate(null); setSelectedSlot(null);
       setSubmittedBooking(null); setLookupRef(""); setLookupError(null);
+      setQrCodeUrl("");
       setForm({ name: "", email: "", phone: "", city: "", meetingType: "free_consultation", siteAddress: "", budget: "", services: [], projectDescription: "", service: "" });
       reset();
     }, 300);
@@ -248,8 +251,125 @@ export default function BookingModal({ isOpen, onClose }) {
     try {
       const result = await submitBooking({ name: form.name, email: form.email, phone: form.phone, city: form.city, service: form.service || form.services[0] || "Interior Design", services: form.services, meetingType: form.meetingType, date: dateObj?.toISOString(), timeSlot: selectedSlot, siteAddress: form.siteAddress, budget: form.budget, projectDescription: form.projectDescription });
       setSubmittedBooking(result.booking);
+
+      // Generate QR Code URL
+      const qrDataUrl = await QRCode.toDataURL(result.booking.bookingRef, {
+        width: 256,
+        margin: 1,
+        color: {
+          dark: T.ink,
+          light: "#ffffff",
+        },
+      });
+      setQrCodeUrl(qrDataUrl);
       setStep(2);
     } catch (_) {}
+  };
+
+  const downloadBookingCard = () => {
+    if (!submittedBooking) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = 600;
+    canvas.height = 900;
+    const ctx = canvas.getContext("2d");
+
+    // Background
+    ctx.fillStyle = T.paper;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Border
+    ctx.strokeStyle = T.line;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+    // Header Branding
+    ctx.textAlign = "center";
+    ctx.fillStyle = T.stone;
+    ctx.font = "bold 20px sans-serif";
+    ctx.fillText("HAVI'S DESIGN", canvas.width / 2, 80);
+
+    ctx.fillStyle = T.accent;
+    ctx.font = "italic 32px Georgia, serif";
+    ctx.fillText("Booking Confirmation", canvas.width / 2, 130);
+
+    // Divider Line
+    ctx.strokeStyle = T.line;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.moveTo(40, 180);
+    ctx.lineTo(canvas.width - 40, 180);
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset line dash
+
+    // Booking Ref (Big and Bold)
+    ctx.fillStyle = T.stone;
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillText("BOOKING ID", canvas.width / 2, 230);
+
+    ctx.fillStyle = T.ink;
+    ctx.font = "bold 42px monospace";
+    ctx.fillText(submittedBooking.bookingRef, canvas.width / 2, 280);
+
+    // Dotted Separator
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.moveTo(40, 320);
+    ctx.lineTo(canvas.width - 40, 320);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Client Info
+    ctx.textAlign = "left";
+    ctx.fillStyle = T.stone;
+    ctx.font = "14px sans-serif";
+
+    const drawField = (label, val, y) => {
+      ctx.fillStyle = T.stone;
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillText(label.toUpperCase(), 60, y);
+      ctx.fillStyle = T.ink;
+      ctx.font = "600 18px sans-serif";
+      ctx.fillText(val, 60, y + 24);
+    };
+
+    drawField("Client Name", submittedBooking.name || form.name, 370);
+    drawField("Meeting Type", MEETING_LABELS[submittedBooking.meetingType] || "Consultation", 440);
+    drawField("Date", fmtDate(submittedBooking.date), 510);
+    drawField("Time Slot", submittedBooking.timeSlot, 580);
+
+    // Draw QR Code
+    if (qrCodeUrl) {
+      const qrImg = new Image();
+      qrImg.src = qrCodeUrl;
+      qrImg.onload = () => {
+        // Draw centered QR Code
+        const qrSize = 160;
+        ctx.drawImage(qrImg, canvas.width - qrSize - 60, 370, qrSize, qrSize);
+
+        // Footer note
+        ctx.textAlign = "center";
+        ctx.fillStyle = T.stone;
+        ctx.font = "italic 13px sans-serif";
+        ctx.fillText("Awaiting verification. We will call you within 2 hours.", canvas.width / 2, 780);
+
+        ctx.fillStyle = T.accent;
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillText("Thank you for choosing HAVI'S DESIGN", canvas.width / 2, 810);
+
+        // Trigger Download
+        const link = document.createElement("a");
+        link.download = `havi-booking-${submittedBooking.bookingRef}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      };
+    } else {
+      // Trigger Download immediately if no QR code loaded
+      const link = document.createElement("a");
+      link.download = `havi-booking-${submittedBooking.bookingRef}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
   };
 
   const handleLookup = async () => {
@@ -416,40 +536,119 @@ export default function BookingModal({ isOpen, onClose }) {
                 {/* ── STEP 2: PENDING ── */}
                 {step === 2 && (
                   <motion.div key="s2" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.28 }}>
-                    <div style={{ textAlign: "center", marginBottom: 24 }}>
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", damping: 14, stiffness: 200 }} style={{ fontSize: 52, marginBottom: 12 }}>📋</motion.div>
-                      <h3 style={{ color: T.ink, fontWeight: 800, fontSize: 20, marginBottom: 8, fontFamily: "Fraunces, Georgia, serif" }}>Booking Request Received!</h3>
-                      <p style={{ color: T.stone, fontSize: 13, lineHeight: 1.7, maxWidth: 380, margin: "0 auto" }}>
-                        Your request for <strong style={{ color: T.accent }}>{fmtDate(submittedBooking?.date)} at {submittedBooking?.timeSlot}</strong> has been submitted successfully.
+                    <div style={{ textAlign: "center", marginBottom: 20 }}>
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", damping: 14, stiffness: 200 }} style={{ fontSize: 44, marginBottom: 8 }}>✅</motion.div>
+                      <h3 style={{ color: T.ink, fontWeight: 800, fontSize: 20, marginBottom: 4, fontFamily: "Fraunces, Georgia, serif" }}>Booking Request Received!</h3>
+                      <p style={{ color: T.stone, fontSize: 13, lineHeight: 1.5, maxWidth: 420, margin: "0 auto" }}>
+                        Your request has been successfully registered. Save your booking card below.
                       </p>
                     </div>
 
-                    {/* Summary card */}
-                    <div style={{ background: T.sand, border: `1px solid ${T.line}`, borderRadius: 14, padding: "18px 20px", marginBottom: 16 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                        <span style={{ fontSize: 11, color: T.stone, textTransform: "uppercase", letterSpacing: 1 }}>Your Booking</span>
-                        <span style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", borderRadius: 20, padding: "3px 12px", fontSize: 11, fontWeight: 700 }}>⏳ Awaiting Verification</span>
+                    {/* Premium Ticket Card */}
+                    <div style={{
+                      background: T.paper,
+                      border: `1.5px solid ${T.line}`,
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      boxShadow: "0 8px 32px rgba(18,17,16,0.06)",
+                      marginBottom: 16,
+                    }}>
+                      {/* Ticket Header */}
+                      <div style={{
+                        padding: "16px 20px",
+                        borderBottom: `1px dashed ${T.line}`,
+                        textAlign: "center",
+                        background: `${T.accent}0a`,
+                      }}>
+                        <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 2, fontWeight: 700, marginBottom: 2 }}>HAVI'S DESIGN PASS</div>
+                        <div style={{ fontSize: 24, fontWeight: 900, color: T.accent, letterSpacing: 2, fontFamily: "monospace" }}>
+                          {submittedBooking?.bookingRef}
+                        </div>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13 }}>
-                        <div><div style={{ color: T.stone, fontSize: 10, marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>Date</div><div style={{ color: T.ink, fontWeight: 600 }}>{fmtDate(submittedBooking?.date)}</div></div>
-                        <div><div style={{ color: T.stone, fontSize: 10, marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>Time</div><div style={{ color: T.ink, fontWeight: 600 }}>{submittedBooking?.timeSlot}</div></div>
-                        <div><div style={{ color: T.stone, fontSize: 10, marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>Type</div><div style={{ color: T.ink, fontWeight: 600 }}>{MEETING_LABELS[submittedBooking?.meetingType] || "Consultation"}</div></div>
-                        <div><div style={{ color: T.stone, fontSize: 10, marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>Status</div><div style={{ color: "#92400e", fontWeight: 600 }}>Pending</div></div>
+
+                      {/* Ticket Body */}
+                      <div style={{ padding: 20, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+                        {/* Details */}
+                        <div style={{ flex: "1 1 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                          <div>
+                            <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Client</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{submittedBooking?.name || form.name}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Meeting Type</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{MEETING_LABELS[submittedBooking?.meetingType] || "Consultation"}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Date</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{fmtDate(submittedBooking?.date)}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Time Slot</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{submittedBooking?.timeSlot}</div>
+                          </div>
+                          <div style={{ gridColumn: "span 2" }}>
+                            <div style={{ fontSize: 9, color: T.stone, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Status</div>
+                            <span style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              background: "#fef3c7",
+                              color: "#92400e",
+                              border: "1px solid #fde68a",
+                              borderRadius: 12,
+                              padding: "2px 8px",
+                              fontSize: 10,
+                              fontWeight: 700
+                            }}>
+                              ⏳ Awaiting Verification
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* QR Code */}
+                        {qrCodeUrl && (
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderLeft: `1px solid ${T.line}`, paddingLeft: 16, flex: "0 0 120px" }}>
+                            <img src={qrCodeUrl} alt="QR Code" style={{ width: 90, height: 90, border: `1px solid ${T.line}`, borderRadius: 8, padding: 3, background: "#fff" }} />
+                            <span style={{ fontSize: 8, color: T.stone, marginTop: 4, textAlign: "center" }}>Scan to track</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Download Action */}
+                      <div style={{ padding: "0 20px 16px", display: "flex", justifyContent: "center" }}>
+                        <button onClick={downloadBookingCard} style={{
+                          background: T.accent,
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "8px 16px",
+                          color: "#fff",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          transition: "all 0.12s"
+                        }}>
+                          📥 Download Card
+                        </button>
                       </div>
                     </div>
 
-                    {/* Call notice */}
-                    <div style={{ display: "flex", gap: 12, background: "#dbeafe", border: "1px solid #bfdbfe", borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
-                      <div style={{ fontSize: 24, flexShrink: 0 }}>📞</div>
+                    {/* Call Notice Info */}
+                    <div style={{ display: "flex", gap: 10, background: "#dbeafe", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+                      <div style={{ fontSize: 20, flexShrink: 0 }}>📞</div>
                       <div>
-                        <div style={{ color: "#1e40af", fontWeight: 700, fontSize: 13, marginBottom: 3 }}>We'll Call You Within 2 Hours</div>
-                        <div style={{ color: "#1e3a8a", fontSize: 12, lineHeight: 1.6 }}>Our team will call you to confirm your booking. Once verified, you'll receive a <strong>Booking ID</strong> to view your full meeting schedule.</div>
+                        <div style={{ color: "#1e40af", fontWeight: 700, fontSize: 13, marginBottom: 2 }}>We'll Call You to Confirm</div>
+                        <div style={{ color: "#1e3a8a", fontSize: 12, lineHeight: 1.5 }}>
+                          Our team will call you on <strong>{submittedBooking?.phone || form.phone}</strong> within 2 hours to confirm your booking. Track your schedule using ID <strong style={{ fontFamily: "monospace" }}>{submittedBooking?.bookingRef}</strong>.
+                        </div>
                       </div>
                     </div>
 
-                    {/* Booking ID lookup */}
-                    <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: 18 }}>
-                      <div style={{ fontSize: 12, color: T.stone, marginBottom: 10, textAlign: "center" }}>Already have your Booking ID?</div>
+                    {/* Direct track lookup */}
+                    <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+                      <div style={{ fontSize: 12, color: T.stone, marginBottom: 8, textAlign: "center" }}>Already verified? Look up details below:</div>
                       <div style={{ display: "flex", gap: 8 }}>
                         <input value={lookupRef} onChange={e => setLookupRef(e.target.value.toUpperCase())} placeholder="e.g. HV-3K9XP" style={{ ...inputStyle, flex: 1, letterSpacing: 3, fontFamily: "monospace", fontWeight: 700 }} onKeyDown={e => e.key === "Enter" && handleLookup()} />
                         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
