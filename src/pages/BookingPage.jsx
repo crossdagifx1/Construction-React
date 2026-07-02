@@ -2,6 +2,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import BookingModal from "../components/booking/BookingModal";
 import { useBooking } from "../components/booking/useBooking";
+import { 
+  FiAward, FiCompass, FiZap, FiSliders, FiUsers, FiSettings, 
+  FiSearch, FiClock, FiPhone, FiCheckCircle, FiXCircle, 
+  FiCalendar, FiFileText, FiPhoneCall, FiChevronRight 
+} from "react-icons/fi";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -15,30 +20,30 @@ const T = {
 };
 
 const WHY_US = [
-  { icon: "🏆", title: "10+ Years Experience", desc: "Trusted by hundreds of clients across Addis Ababa" },
-  { icon: "🎨", title: "Custom Designs",       desc: "Every project is uniquely tailored to your vision" },
-  { icon: "⚡", title: "On-Time Delivery",     desc: "We respect your time and deliver on schedule" },
-  { icon: "💎", title: "Premium Materials",    desc: "Only the finest materials for lasting quality" },
-  { icon: "🤝", title: "Free Consultation",    desc: "Your first session is completely free" },
-  { icon: "🔧", title: "After-Service Support",desc: "We're here for you even after project completion" },
+  { icon: <FiAward size={24} />, title: "10+ Years Experience", desc: "Trusted by hundreds of clients across Addis Ababa" },
+  { icon: <FiCompass size={24} />, title: "Custom Designs",       desc: "Every project is uniquely tailored to your vision" },
+  { icon: <FiZap size={24} />, title: "On-Time Delivery",     desc: "We respect your time and deliver on schedule" },
+  { icon: <FiSliders size={24} />, title: "Premium Materials",    desc: "Only the finest materials for lasting quality" },
+  { icon: <FiUsers size={24} />, title: "Free Consultation",    desc: "Your first session is completely free" },
+  { icon: <FiSettings size={24} />, title: "After-Service Support",desc: "We're here for you even after project completion" },
 ];
 
 const STEPS = [
-  { step: "01", icon: "📅", title: "Pick a Date & Time",    desc: "Choose from available calendar slots — Mon–Sat, 9AM to 5PM." },
-  { step: "02", icon: "📝", title: "Tell Us Your Vision",   desc: "Share project details, budget, and goals so we can prepare." },
-  { step: "03", icon: "📞", title: "We Call to Confirm",    desc: "Our team calls within 2 hours to verify and answer questions." },
-  { step: "04", icon: "✅", title: "Get Your Booking ID",   desc: "After verification, use your ID to view the full meeting schedule." },
+  { step: "01", icon: <FiCalendar size={24} />, title: "Pick a Date & Time",    desc: "Choose from available calendar slots — Mon–Sat, 9AM to 5PM." },
+  { step: "02", icon: <FiFileText size={24} />, title: "Tell Us Your Vision",   desc: "Share project details, budget, and goals so we can prepare." },
+  { step: "03", icon: <FiPhoneCall size={24} />, title: "We Call to Confirm",    desc: "Our team calls within 2 hours to verify and answer questions." },
+  { step: "04", icon: <FiCheckCircle size={24} />, title: "Get Your Booking ID",   desc: "After verification, use your ID to view the full meeting schedule." },
 ];
 
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DAYS = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
 
 const STATUS_CFG = {
-  pending:   { color: "#92400e", bg: "#fef3c7", border: "#fde68a", label: "Awaiting Verification", icon: "⏳" },
-  verified:  { color: "#1e40af", bg: "#dbeafe", border: "#bfdbfe", label: "Verified",               icon: "📞" },
-  confirmed: { color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Confirmed",              icon: "✅" },
-  completed: { color: "#6b21a8", bg: "#f3e8ff", border: "#e9d5ff", label: "Completed",              icon: "🎉" },
-  cancelled: { color: "#991b1b", bg: "#fee2e2", border: "#fecaca", label: "Cancelled",              icon: "❌" },
+  pending:   { color: "#92400e", bg: "#fef3c7", border: "#fde68a", label: "Awaiting Verification", icon: <FiClock size={12} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> },
+  verified:  { color: "#1e40af", bg: "#dbeafe", border: "#bfdbfe", label: "Verified",               icon: <FiPhone size={12} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> },
+  confirmed: { color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Confirmed",              icon: <FiCheckCircle size={12} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> },
+  completed: { color: "#6b21a8", bg: "#f3e8ff", border: "#e9d5ff", label: "Completed",              icon: <FiAward size={12} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> },
+  cancelled: { color: "#991b1b", bg: "#fee2e2", border: "#fecaca", label: "Cancelled",              icon: <FiXCircle size={12} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> },
 };
 
 const MEETING_LABELS = {
@@ -78,7 +83,9 @@ function BookingLookup() {
   return (
     <div style={{ background: T.paper, border: `1px solid ${T.line}`, borderRadius: 20, padding: "40px 32px", maxWidth: 580, margin: "0 auto", boxShadow: "0 4px 24px rgba(18,17,16,0.07)" }}>
       <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <div style={{ fontSize: 34, marginBottom: 10 }}>🔍</div>
+        <div style={{ fontSize: 34, marginBottom: 10, color: T.accent, display: "flex", justifyContent: "center" }}>
+          <FiSearch />
+        </div>
         <h3 style={{ color: T.ink, fontWeight: 800, fontSize: 20, margin: "0 0 8px", fontFamily: "Fraunces, Georgia, serif" }}>Find Your Booking</h3>
         <p style={{ color: T.stone, fontSize: 13, margin: 0, lineHeight: 1.7 }}>Enter the Booking ID you received after phone verification to view your full meeting schedule.</p>
       </div>
@@ -88,7 +95,7 @@ function BookingLookup() {
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
           onClick={handleLookup} disabled={!ref.trim() || looking}
           style={{ background: T.accent, border: "none", borderRadius: 10, padding: "13px 22px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", flexShrink: 0, opacity: !ref.trim() ? 0.6 : 1 }}>
-          {looking ? "…" : "View →"}
+          {looking ? "…" : "View"}
         </motion.button>
       </div>
 
@@ -106,7 +113,11 @@ function BookingLookup() {
             </div>
             {(() => {
               const cfg = STATUS_CFG[lookupResult.status] || STATUS_CFG.pending;
-              return <span style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>{cfg.icon} {cfg.label}</span>;
+              return (
+                <span style={{ display: "inline-flex", alignItems: "center", background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>
+                  {cfg.icon} {cfg.label}
+                </span>
+              );
             })()}
           </div>
 
@@ -127,21 +138,21 @@ function BookingLookup() {
 
           {lookupResult.meetingLink && (
             <div style={{ background: "#dbeafe", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 14px", marginBottom: 8 }}>
-              <div style={{ fontSize: 10, color: "#1e40af", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>🔗 Meeting Link</div>
+              <div style={{ fontSize: 10, color: "#1e40af", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Meeting Link</div>
               <a href={lookupResult.meetingLink} target="_blank" rel="noopener noreferrer" style={{ color: "#1e40af", fontSize: 13, wordBreak: "break-all" }}>{lookupResult.meetingLink}</a>
             </div>
           )}
 
           {lookupResult.siteAddress && lookupResult.meetingType === "site_visit" && (
             <div style={{ background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 14px", marginBottom: 8 }}>
-              <div style={{ fontSize: 10, color: "#166534", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>📍 Meeting Location</div>
+              <div style={{ fontSize: 10, color: "#166534", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Meeting Location</div>
               <div style={{ color: "#14532d", fontSize: 13 }}>{lookupResult.siteAddress}</div>
             </div>
           )}
 
           {lookupResult.confirmedNote && (
             <div style={{ background: `${T.accent}0f`, border: `1px solid ${T.accent}33`, borderRadius: 10, padding: "14px 16px" }}>
-              <div style={{ fontSize: 10, color: T.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>📝 Instructions from HAVI'S DESIGN</div>
+              <div style={{ fontSize: 10, color: T.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>Instructions from HAVI'S DESIGN</div>
               <div style={{ color: T.ink, fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-line" }}>{lookupResult.confirmedNote}</div>
             </div>
           )}
@@ -187,11 +198,11 @@ export default function BookingPage() {
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <motion.button onClick={() => setIsModalOpen(true)} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               style={{ background: T.ink, border: "none", borderRadius: 12, padding: "15px 40px", color: T.paper, fontSize: 15, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3 }}>
-              📅 Book a Free Consultation
+              Book a Free Consultation
             </motion.button>
             <motion.button onClick={() => document.getElementById("booking-lookup").scrollIntoView({ behavior: "smooth" })} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               style={{ background: "transparent", border: `1.5px solid ${T.line}`, borderRadius: 12, padding: "15px 28px", color: T.stone, fontSize: 15, cursor: "pointer" }}>
-              Track My Booking →
+              Track My Booking
             </motion.button>
           </div>
 
@@ -213,7 +224,7 @@ export default function BookingPage() {
             <motion.div key={item.step} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
               style={{ background: i % 2 === 0 ? T.paper : T.sand, padding: "32px 24px", borderRight: i < STEPS.length - 1 ? `1px solid ${T.line}` : "none", position: "relative" }}>
               <div style={{ fontFamily: "Fraunces, Georgia, serif", fontSize: 42, fontWeight: 300, color: `${T.accent}22`, lineHeight: 1, marginBottom: 14 }}>{item.step}</div>
-              <div style={{ fontSize: 28, marginBottom: 10 }}>{item.icon}</div>
+              <div style={{ fontSize: 24, marginBottom: 10, color: T.accent }}>{item.icon}</div>
               <h3 style={{ color: T.ink, fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{item.title}</h3>
               <p style={{ color: T.stone, fontSize: 13, lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
             </motion.div>
@@ -234,7 +245,7 @@ export default function BookingPage() {
               <motion.div key={item.title} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
                 whileHover={{ background: T.paper }}
                 style={{ background: T.sand, padding: "28px 24px", borderRight: (i + 1) % 3 !== 0 ? `1px solid ${T.line}` : "none", borderBottom: i < WHY_US.length - 3 ? `1px solid ${T.line}` : "none", transition: "background 0.2s" }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>{item.icon}</div>
+                <div style={{ fontSize: 24, marginBottom: 10, color: T.accent }}>{item.icon}</div>
                 <h3 style={{ color: T.ink, fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{item.title}</h3>
                 <p style={{ color: T.stone, fontSize: 13, lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
               </motion.div>
@@ -266,7 +277,7 @@ export default function BookingPage() {
           <p style={{ color: `${T.paper}80`, fontSize: 15, marginBottom: 32, lineHeight: 1.7 }}>Our first consultation is always free. No commitments, no pressure.</p>
           <motion.button onClick={() => setIsModalOpen(true)} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             style={{ background: T.accent, border: "none", borderRadius: 12, padding: "15px 44px", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3, boxShadow: `0 8px 28px ${T.accent}44` }}>
-            Get Started Today →
+            Get Started Today
           </motion.button>
         </motion.div>
       </section>
