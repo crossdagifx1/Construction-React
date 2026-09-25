@@ -36,7 +36,7 @@ const Hero = () => {
       </motion.span>
 
       <div className="shell relative z-10 grid min-h-[100svh] grid-cols-1 items-center gap-10 lg:grid-cols-12">
-        <div className="lg:col-span-7 lg:pr-8">
+        <div className="lg:col-span-6 lg:pr-8">
           <motion.span
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -143,12 +143,12 @@ const Hero = () => {
           </motion.div>
         </div>
 
-        <div className="relative lg:col-span-5">
+        <div className="relative lg:col-span-6">
           <motion.div
             initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1.2, ease: EASE }}
-            className="relative mx-auto flex max-w-md items-end justify-center"
+            className="relative mx-auto flex max-w-xl items-end justify-center w-full"
           >
             <div className="absolute bottom-0 h-[78%] w-full rounded-t-[140px] bg-sand" />
             <motion.img

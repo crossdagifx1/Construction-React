@@ -90,8 +90,8 @@ export function useChatbot() {
             id: (Date.now() + 1).toString(),
             role: "assistant",
             content: isTimeout
-              ? "Our AI assistant is taking longer than usual — please try again in a moment, or book a consultation directly at /booking!"
-              : "We offer interior design, renovation & construction in Addis Ababa. Book a free consultation at /booking or contact us directly!",
+              ? "Our AI assistant is taking longer than usual — please try again in a moment, or click below to open the booking scheduler. [Book Consultation]"
+              : "We offer interior design, renovation & construction in Addis Ababa. Please click below to book a free consultation! [Book Consultation]",
             createdAt: new Date(),
             error: true,
           },

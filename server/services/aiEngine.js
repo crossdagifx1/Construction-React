@@ -24,36 +24,23 @@ const genAI = hasGemini
 // ── OpenRouter Free Models ────────────────────────────────────────────────
 // Priority order: fastest & most reliable free models first
 export const OPENROUTER_MODELS = [
-  { id: "google/gemma-4-26b-a4b-it:free",                     label: "Gemma 4 26B",                      priority: 1,  enabled: true },
-  { id: "liquid/lfm-2.5-1.2b-thinking:free",                  label: "LFM 2.5 1.2B Thinking",            priority: 2,  enabled: true },
-  { id: "cohere/north-mini-code:free",                        label: "Cohere North Mini Code",            priority: 3,  enabled: true },
-  { id: "poolside/laguna-xs.2:free",                          label: "Poolside Laguna XS",                priority: 4,  enabled: true },
-  { id: "nvidia/nemotron-3-ultra-550b-a55b:free",              label: "NVIDIA Nemotron Ultra 550B",       priority: 5,  enabled: true },
-  { id: "meta-llama/llama-3.3-70b-instruct:free",              label: "Llama 3.3 70B Instruct",          priority: 6,  enabled: true },
-  { id: "openai/gpt-oss-120b:free",                           label: "GPT OSS 120B",                     priority: 7,  enabled: true },
-  { id: "qwen/qwen3-next-80b-a3b-instruct:free",               label: "Qwen3 Next 80B",                   priority: 8,  enabled: true },
-  { id: "nousresearch/hermes-3-llama-3.1-405b:free",          label: "Hermes 3 Llama 405B",              priority: 9, enabled: true },
-  { id: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", label: "Dolphin Mistral 24B",   priority: 10, enabled: true },
+  { id: "nex-agi/nex-n2.5-mini:free",                         label: "Nex N2.5 Mini",                    priority: 1,  enabled: true },
+  { id: "nvidia/nemotron-3.5-lightning:free",                 label: "NVIDIA Nemotron 3.5 Lightning",    priority: 2,  enabled: true },
+  { id: "qwen/qwen3.8-27b:free",                              label: "Qwen 3.8 27B",                     priority: 3,  enabled: true },
+  { id: "inclusionai/ling-3.0-flash-vl:free",                 label: "Ling 3.0 Flash VL",                priority: 4,  enabled: true },
+  { id: "liquid/lfm-2.5-2.6b:free",                           label: "LFM 2.5 2.6B",                     priority: 5,  enabled: true },
+  { id: "dots-studio/dots-3-note-preview:free",               label: "Dots 3 Note Preview",              priority: 6,  enabled: true },
+  { id: "thinkingmachines/inkling-small:free",                label: "Inkling Small",                    priority: 7,  enabled: true },
+  { id: "nex-agi/nex-n2.5-pro:free",                          label: "Nex N2.5 Pro",                     priority: 8,  enabled: true },
 ];
 
 // ── Gemini Models (priority by free-tier quota — best limits first) ───────
 // RPM / Tokens-per-min / RPD from the API dashboard
 export const GEMINI_MODELS = [
-  // Confirmed working public model first for standard keys
-  { id: "gemini-flash-latest",           label: "Gemini 1.5 Flash",          tier: "legacy",    priority: 1,  enabled: true },
-  // 15 RPM, Unlimited tokens, 1.5K RPD ← BEST (if enabled/accessible on user's key)
-  { id: "gemma-4-31b-it",                label: "Gemma 4 31B",               tier: "unlimited", priority: 2,  enabled: true },
-  { id: "gemma-4-26b-it",                label: "Gemma 4 26B",               tier: "unlimited", priority: 3,  enabled: true },
-  // 15 RPM, 250K tokens, 500 RPD ← Very good
-  { id: "gemini-3.1-flash-lite",         label: "Gemini 3.1 Flash Lite",     tier: "high",      priority: 4,  enabled: true },
-  // 10 RPM, 250K tokens, 20 RPD
-  { id: "gemini-2.5-flash-lite",         label: "Gemini 2.5 Flash Lite",     tier: "standard",  priority: 5,  enabled: true },
-  // 5 RPM, 250K tokens, 20 RPD
-  { id: "gemini-3.5-flash",              label: "Gemini 3.5 Flash",          tier: "standard",  priority: 6,  enabled: true },
-  { id: "gemini-3-flash",                label: "Gemini 3 Flash",            tier: "standard",  priority: 7,  enabled: true },
-  { id: "gemini-2.5-flash",              label: "Gemini 2.5 Flash",          tier: "standard",  priority: 8,  enabled: true },
-  { id: "gemini-2.0-flash",              label: "Gemini 2 Flash",            tier: "standard",  priority: 9,  enabled: true },
-  { id: "gemini-2.0-flash-lite",         label: "Gemini 2 Flash Lite",       tier: "standard",  priority: 10, enabled: true },
+  { id: "gemini-3.6-flash",              label: "Gemini 3.6 Flash",          tier: "standard",  priority: 1,  enabled: true },
+  { id: "gemini-2.5-flash",              label: "Gemini 2.5 Flash",          tier: "standard",  priority: 2,  enabled: true },
+  { id: "gemini-1.5-flash",              label: "Gemini 1.5 Flash",          tier: "legacy",    priority: 3,  enabled: true },
+  { id: "gemini-2.0-flash",              label: "Gemini 2.0 Flash",          tier: "legacy",    priority: 4,  enabled: true },
 ];
 
 // In-memory queues (can be reordered by Tech Admin)
@@ -148,7 +135,7 @@ async function callGemini(systemPrompt, history, userMessage, modelId) {
     }));
 
   const timeout = new Promise((_, rej) =>
-    setTimeout(() => rej(new Error(`Gemini timeout (${modelId})`)), 3500)
+    setTimeout(() => rej(new Error(`Gemini timeout (${modelId})`)), 10000)
   );
 
   const chat = model.startChat({ history: geminiHistory });
@@ -160,11 +147,11 @@ async function callGemini(systemPrompt, history, userMessage, modelId) {
 
 // ── Static Fallback ────────────────────────────────────────────────────────
 const STATIC_FALLBACKS = [
-  "Thank you for reaching out to HAVI'S DESIGN! We specialize in premium interior design and renovation in Addis Ababa. Would you like to book a free consultation at /booking?",
-  "Great question! Our team would love to help with your design project. Our services start from ETB 15,000 per room. Book a free consultation to get an accurate quote!",
-  "We offer interior design, renovation, office design, and commercial construction across Addis Ababa. Visit /booking to schedule your free first consultation!",
-  "HAVI'S DESIGN has over 10 years of experience delivering beautiful spaces. Contact us or use our booking page to discuss your project with our team.",
-  "Our expert designers are ready to transform your space! From concept to completion, we handle everything. Book your free consultation at /booking to get started.",
+  "Thank you for reaching out to HAVI'S DESIGN! We specialize in premium interior design and renovation in Addis Ababa. Would you like to book a free consultation? [Book Consultation]",
+  "Great question! Our team would love to help with your design project. Our services start from ETB 15,000 per room. Let's schedule a free consultation to discuss your vision! [Book Consultation]",
+  "We offer interior design, renovation, office design, and commercial construction across Addis Ababa. Click below to book your free first consultation with us! [Book Consultation]",
+  "HAVI'S DESIGN has over 10 years of experience delivering beautiful spaces. Click below to schedule a chat with our design team. [Book Consultation] [Button: View Portfolio|/portfolio]",
+  "Our expert designers are ready to transform your space! From concept to completion, we handle everything. Click below to book a free first session. [Book Consultation]",
 ];
 
 const getStaticFallback = () =>
@@ -259,7 +246,7 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
     return { reply, provider: "static", model: "static-fallback" };
   } else {
     // If static is also disabled, return custom suspended status
-    const reply = "Our AI Assistant support is temporarily unavailable. Please schedule a design consultation directly at /booking.";
+    const reply = "Our AI Assistant support is temporarily unavailable. If you would like to schedule a free design consultation, please click below. [Book Consultation]";
     logAsync({
       provider: "suspended", model: "none",
       prompt: userMessage.slice(0, 500), response: reply,

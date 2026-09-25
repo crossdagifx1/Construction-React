@@ -13,6 +13,7 @@ const navItems = [
   { label: "Work", to: "/portfolio" },
   { label: "Listings", to: "/listings" },
   { label: "Blog", to: "/blog" },
+  { label: "Booking", to: "/booking", mobileOnly: true },
   { label: "Contact", to: "/contact" },
 ];
 
@@ -68,12 +69,12 @@ const Header = () => {
           </span>
         </Link>
 
-        <ul className="hidden items-center gap-9 lg:flex">
-          {navItems.map((item) => (
+        <ul className="hidden items-center lg:gap-5 xl:gap-8 lg:flex">
+          {navItems.filter(item => !item.mobileOnly).map((item) => (
             <li key={item.to}>
               <Link
                 to={item.to}
-                className="link-underline text-sm font-medium text-ink/80 transition-colors hover:text-ink"
+                className="link-underline text-sm font-medium text-ink/80 transition-colors hover:text-ink whitespace-nowrap"
               >
                 {item.label}
               </Link>
@@ -81,14 +82,14 @@ const Header = () => {
           ))}
         </ul>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 xl:gap-3">
           {/* Phone (large screens) */}
           <a
             href={contact.phoneHref || `tel:${contact.phone}`}
-            className="hidden items-center gap-2 text-sm font-medium text-ink/80 transition-colors hover:text-accent xl:flex"
+            title="Call Us"
+            className="hidden h-9 w-9 place-items-center rounded-full border border-line text-ink/70 transition-all duration-300 hover:border-accent hover:text-accent xl:grid"
           >
-            <FiPhone size={15} />
-            <span>{contact.phone}</span>
+            <FiPhone size={14} />
           </a>
 
           {/* Socials (large screens) */}
@@ -120,8 +121,16 @@ const Header = () => {
           </a>
 
           <Link
+            to="/booking"
+            className="group hidden items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs xl:px-6 xl:py-3 xl:text-sm font-medium text-paper transition-all duration-500 ease-smooth hover:bg-accent-deep md:inline-flex whitespace-nowrap"
+          >
+            Book Session
+            <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+
+          <Link
             to="/contact"
-            className="group hidden items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-paper transition-all duration-500 ease-smooth hover:bg-accent-deep md:inline-flex"
+            className="group hidden items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-xs xl:px-6 xl:py-3 xl:text-sm font-medium text-paper transition-all duration-500 ease-smooth hover:bg-accent-deep md:inline-flex whitespace-nowrap"
           >
             Reach us
             <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -166,13 +175,14 @@ const Header = () => {
 
               {/* Phone + socials in the mobile menu */}
               <li className="mt-3 flex flex-col gap-4 pt-5">
-                <a
-                  href={contact.phoneHref || `tel:${contact.phone}`}
-                  className="flex items-center gap-3 font-display text-xl tracking-tightest"
-                >
-                  <FiPhone size={18} /> {contact.phone}
-                </a>
                 <div className="flex items-center gap-3">
+                  <a
+                    href={contact.phoneHref || `tel:${contact.phone}`}
+                    title="Call Us"
+                    className="grid h-10 w-10 place-items-center rounded-full border border-line text-ink/70 transition-colors hover:border-accent hover:text-accent"
+                  >
+                    <FiPhone size={16} />
+                  </a>
                   {contact.instagram && (
                     <a href={contact.instagram} target="_blank" rel="noopener noreferrer" title="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-line text-ink/70 transition-colors hover:border-[#E1306C] hover:text-[#E1306C]">
                       <FaInstagram size={16} />

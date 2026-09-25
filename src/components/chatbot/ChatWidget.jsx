@@ -1,7 +1,84 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useChatbot } from "./useChatbot";
 import "./ChatWidget.css";
+
+function parseMessageContent(content) {
+  let text = content || "";
+  const suggestions = [];
+  const buttons = [];
+  const images = [];
+
+  // Parse [Suggest: Label]
+  const suggestRegex = /\[Suggest:\s*([^\]]+)\]/g;
+  let match;
+  while ((match = suggestRegex.exec(text)) !== null) {
+    suggestions.push(match[1].trim());
+  }
+  text = text.replace(suggestRegex, "");
+
+  // Parse [Book Consultation]
+  const bookRegex = /\[Book Consultation\]/g;
+  let hasBookButton = false;
+  if (bookRegex.test(text)) {
+    hasBookButton = true;
+    text = text.replace(bookRegex, "");
+  }
+
+  // Parse [Button: Label|Path]
+  const buttonRegex = /\[Button:\s*([^|\]]+)\|([^\]]+)\]/g;
+  while ((match = buttonRegex.exec(text)) !== null) {
+    buttons.push({ label: match[1].trim(), path: match[2].trim() });
+  }
+  text = text.replace(buttonRegex, "");
+
+  // Parse [Image: Url|Caption] or [Image: Url]
+  const imageRegex = /\[Image:\s*([^|\]]+)(?:\|([^\]]+))?\]/g;
+  while ((match = imageRegex.exec(text)) !== null) {
+    images.push({ url: match[1].trim(), caption: match[2] ? match[2].trim() : "" });
+  }
+  text = text.replace(imageRegex, "");
+
+  // Clean up any remaining raw "/booking" or "visiting /booking" phrases
+  if (text.toLowerCase().includes("/booking")) {
+    hasBookButton = true;
+    text = text.replace(/visiting \/booking/gi, "using the scheduler below");
+    text = text.replace(/\/booking/gi, "the scheduler below");
+  }
+
+  // Auto-detect booking intent from keywords in the text (as safety check)
+  const lowerText = text.toLowerCase();
+  if (
+    lowerText.includes("booking scheduler") ||
+    lowerText.includes("booking page") ||
+    lowerText.includes("book a consultation") ||
+    lowerText.includes("schedule a consultation") ||
+    lowerText.includes("book a free consultation")
+  ) {
+    hasBookButton = true;
+  }
+
+  // If the message has a booking button but no suggest chips, auto-provide Yes/No options
+  if (hasBookButton && suggestions.length === 0) {
+    suggestions.push("Yes, let's book");
+    suggestions.push("Maybe later");
+  } else if (
+    (lowerText.includes("pricing") || lowerText.includes("cost") || lowerText.includes("price") || lowerText.includes("etb")) &&
+    suggestions.length === 0
+  ) {
+    suggestions.push("Book consultation");
+    suggestions.push("What services do you offer?");
+  }
+
+  return {
+    cleanText: text.trim(),
+    suggestions,
+    buttons,
+    images,
+    hasBookButton,
+  };
+}
 
 // Icons (inline SVG for zero extra dependencies)
 const BotIcon = () => (
@@ -31,22 +108,105 @@ const TypingDots = () => (
   </div>
 );
 
-function MessageBubble({ msg }) {
+function MessageBubble({ msg, onCloseChat }) {
   const isUser = msg.role === "user";
+  const navigate = useNavigate();
+
+  if (isUser) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.25 }}
+        className="havi-chat-msg havi-chat-msg--user"
+      >
+        <div className="havi-chat-bubble havi-chat-bubble--user">
+          {msg.content}
+        </div>
+      </motion.div>
+    );
+  }
+
+  const { cleanText, buttons, images, hasBookButton } = parseMessageContent(msg.content);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25 }}
-      className={`havi-chat-msg ${isUser ? "havi-chat-msg--user" : "havi-chat-msg--ai"}`}
+      className="havi-chat-msg havi-chat-msg--ai"
     >
-      {!isUser && (
-        <div className="havi-chat-avatar">
-          <BotIcon />
-        </div>
-      )}
-      <div className={`havi-chat-bubble ${isUser ? "havi-chat-bubble--user" : "havi-chat-bubble--ai"} ${msg.error ? "havi-chat-bubble--error" : ""}`}>
-        {msg.content}
+      <div className="havi-chat-avatar">
+        <BotIcon />
+      </div>
+      <div className={`havi-chat-bubble havi-chat-bubble--ai ${msg.error ? "havi-chat-bubble--error" : ""}`}>
+        {cleanText && <div className="havi-chat-text" style={{ whiteSpace: "pre-line" }}>{cleanText}</div>}
+
+        {images.map((img, idx) => (
+          <div key={idx} className="havi-chat-img-container" style={{ marginTop: 8, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(0,0,0,0.1)" }}>
+            <img src={img.url} alt={img.caption || "Design visual"} style={{ width: "100%", height: "auto", display: "block" }} />
+            {img.caption && (
+              <div style={{ padding: "6px 8px", fontSize: 11, background: "rgba(0,0,0,0.05)", color: "#6F6A62", fontFamily: "sans-serif" }}>
+                {img.caption}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {(hasBookButton || buttons.length > 0) && (
+          <div className="havi-chat-buttons-container" style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+            {hasBookButton && (
+              <button
+                onClick={() => {
+                  navigate("/booking");
+                  onCloseChat();
+                }}
+                className="havi-chat-action-btn"
+                style={{
+                  background: "#B98A4B",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  width: "100%",
+                  textAlign: "center",
+                  boxShadow: "0 4px 12px rgba(185, 138, 75, 0.2)",
+                  transition: "all 0.2s"
+                }}
+              >
+                Book Free Consultation
+              </button>
+            )}
+            {buttons.map((btn, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  navigate(btn.path);
+                  onCloseChat();
+                }}
+                className="havi-chat-action-btn"
+                style={{
+                  background: "#121110",
+                  color: "#F6F3ED",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  width: "100%",
+                  textAlign: "center",
+                  transition: "all 0.2s"
+                }}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -56,6 +216,7 @@ export default function ChatWidget() {
   const {
     isOpen, messages, input, setInput, isLoading,
     hasNewMessage, quickActions, sendMessage, sendQuickAction, toggleChat,
+    closeChat,
   } = useChatbot();
 
   const messagesEndRef = useRef(null);
@@ -77,6 +238,11 @@ export default function ChatWidget() {
   };
 
   const showQuickActions = messages.length <= 1 && !isLoading;
+
+  const lastMsg = messages[messages.length - 1];
+  const isLastMsgAi = lastMsg && lastMsg.role === "assistant";
+  const parsedLastMsg = isLastMsgAi ? parseMessageContent(lastMsg.content) : null;
+  const activeSuggestions = parsedLastMsg ? parsedLastMsg.suggestions : [];
 
   return (
     <>
@@ -106,7 +272,7 @@ export default function ChatWidget() {
               {/* Messages */}
               <div className="havi-chat-messages">
                 {messages.map((msg) => (
-                  <MessageBubble key={msg.id} msg={msg} />
+                  <MessageBubble key={msg.id} msg={msg} onCloseChat={closeChat} />
                 ))}
                 {isLoading && (
                   <div className="havi-chat-msg havi-chat-msg--ai">
@@ -119,18 +285,40 @@ export default function ChatWidget() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Quick Actions */}
-              {showQuickActions && (
-                <div className="havi-chat-quick">
-                  {quickActions.map((action) => (
-                    <button
-                      key={action.label}
-                      className="havi-chat-quick-btn"
-                      onClick={() => sendQuickAction(action)}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
+              {/* Dynamic Suggestions / Quick Actions */}
+              {!isLoading && (
+                <div className="havi-chat-quick" style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "8px 16px", background: "transparent" }}>
+                  {activeSuggestions.length > 0 ? (
+                    activeSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        className="havi-chat-quick-btn"
+                        onClick={() => sendMessage(suggestion)}
+                        style={{
+                          background: "#EFE9DF",
+                          border: "1px solid #E2DCD0",
+                          borderRadius: 16,
+                          padding: "6px 12px",
+                          fontSize: 12,
+                          color: "#121110",
+                          cursor: "pointer",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))
+                  ) : showQuickActions ? (
+                    quickActions.map((action) => (
+                      <button
+                        key={action.label}
+                        className="havi-chat-quick-btn"
+                        onClick={() => sendQuickAction(action)}
+                      >
+                        {action.label}
+                      </button>
+                    ))
+                  ) : null}
                 </div>
               )}
 

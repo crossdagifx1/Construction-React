@@ -13,6 +13,7 @@ const nav = [
   { label: "About", to: "/about" },
   { label: "Services", to: "/#services" },
   { label: "Work", to: "/portfolio" },
+  { label: "Booking", to: "/booking" },
   { label: "Contact", to: "/contact" },
 ];
 
@@ -40,13 +41,22 @@ const Footer = () => {
           className="display justify-center text-center text-5xl text-paper sm:text-6xl lg:text-7xl"
         />
         <Reveal variants={fadeUp} delay={0.1}>
-          <Link
-            to="/contact"
-            className="group mt-10 inline-flex items-center gap-2 rounded-full bg-paper px-9 py-4 text-sm font-medium text-ink transition-colors duration-500 hover:bg-accent"
-          >
-            Start a project
-            <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link
+              to="/booking"
+              className="group inline-flex items-center gap-2 rounded-full bg-accent px-9 py-4 text-sm font-medium text-paper transition-colors duration-500 hover:bg-accent-deep"
+            >
+              Book a Consultation
+              <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+            <Link
+              to="/contact"
+              className="group inline-flex items-center gap-2 rounded-full bg-paper px-9 py-4 text-sm font-medium text-ink transition-colors duration-500 hover:bg-accent hover:text-paper"
+            >
+              Start a project
+              <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
         </Reveal>
       </div>
 

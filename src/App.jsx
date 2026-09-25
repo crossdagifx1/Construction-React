@@ -1,7 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import PublicLayout from "./components/PublicLayout";
 import ScrollToTop from "./components/ScrollToTop";
 import ChatWidget from "./components/chatbot/ChatWidget";
+import BookingModal from "./components/booking/BookingModal";
 
 
 import Home from "./pages/Home";
@@ -41,6 +42,16 @@ import SystemHealth from "./pages/admin/tech/SystemHealth";
 
 
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Booking modal pops up overlaying the current page (e.g. Home) when URL path is /booking
+  const isBookingOpen = location.pathname === "/booking";
+
+  const handleCloseBooking = () => {
+    navigate("/");
+  };
+
   return (
     <>
       <ScrollToTop />
@@ -55,7 +66,7 @@ function App() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogDetailPage />} />
           <Route path="/listings" element={<AdListingPage />} />
-          <Route path="/booking" element={<BookingPage />} />
+          <Route path="/booking" element={<Home />} />
         </Route>
 
         {/* Admin */}
@@ -98,6 +109,9 @@ function App() {
 
       {/* Global AI chatbot — shown on all public pages */}
       <ChatWidget />
+
+      {/* Global Booking Modal — pops up overlaying active page when route is /booking */}
+      <BookingModal isOpen={isBookingOpen} onClose={handleCloseBooking} />
     </>
   );
 }

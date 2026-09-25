@@ -1,13 +1,10 @@
 import jwt from "jsonwebtoken";
 
 const SECRET = process.env.JWT_SECRET || "dev-secret";
-const EXPIRES = process.env.JWT_EXPIRES_IN || "7d";
 
-// Signs JWT including admin role for role-based access control
+// Signs JWT including admin role for role-based access control (never expires)
 export const signToken = (admin) =>
-  jwt.sign({ id: admin.id, email: admin.email, role: admin.role }, SECRET, {
-    expiresIn: EXPIRES,
-  });
+  jwt.sign({ id: admin.id, email: admin.email, role: admin.role }, SECRET);
 
 // Express middleware — rejects requests without a valid Bearer token.
 export const requireAuth = (req, res, next) => {
