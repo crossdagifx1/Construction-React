@@ -36,12 +36,12 @@ router.use(requireTechAdmin);
 // Strictly hides provider base URL
 router.get("/ai/status", async (req, res) => {
   try {
-    const [status, primaryQueue, geminiQ] = await Promise.all([
+    const [status, primaryQueue, geminiQ, rawKey] = await Promise.all([
       getProviderStatus(),
-      Promise.resolve(getPrimaryModels()),
-      Promise.resolve(getGeminiModelQueue()),
+      getPrimaryModels(),
+      getGeminiModelQueue(),
+      getPrimaryApiKey(),
     ]);
-    const rawKey = getPrimaryApiKey();
     res.json({
       providers: status,
       providersActive: getProvidersActive(),

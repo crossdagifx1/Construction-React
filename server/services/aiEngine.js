@@ -44,7 +44,13 @@ let isInitialized = false;
 // Provider base URL — KEPT ON SERVER ONLY
 const getBaseUrl = () => process.env.AI_BASE_URL || "https://vyceai.com/v1";
 
-export const getPrimaryApiKey = () => {
+export const getPrimaryApiKey = async () => {
+  await ensureInit();
+  return customApiKey || process.env.AI_API_KEY || "";
+};
+
+// Synchronous fallback getter
+export const getPrimaryApiKeySync = () => {
   return customApiKey || process.env.AI_API_KEY || "";
 };
 
@@ -126,14 +132,22 @@ async function persistConfig() {
 }
 
 // ── State Getters & Setters ────────────────────────────────────────────────
-export const getPrimaryModels = () => primaryModels;
+export const getPrimaryModels = async () => {
+  await ensureInit();
+  return primaryModels;
+};
 export const setPrimaryModels = async (models) => {
+  await ensureInit();
   primaryModels = models.map((m, i) => ({ ...m, priority: i + 1 }));
   await persistConfig();
 };
 
-export const getGeminiModelQueue = () => geminiModels;
+export const getGeminiModelQueue = async () => {
+  await ensureInit();
+  return geminiModels;
+};
 export const setGeminiModelQueue = async (models) => {
+  await ensureInit();
   geminiModels = models.map((m, i) => ({ ...m, priority: i + 1 }));
   await persistConfig();
 };
