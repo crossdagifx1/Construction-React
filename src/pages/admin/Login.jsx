@@ -18,8 +18,12 @@ const Login = () => {
     setBusy(true);
     setError("");
     try {
-      await login(email, password);
-      navigate("/admin");
+      const loggedInAdmin = await login(email, password);
+      if (loggedInAdmin?.role === "TECHNICAL_ADMIN") {
+        navigate("/admin/tech/ai");
+      } else {
+        navigate("/admin");
+      }
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
