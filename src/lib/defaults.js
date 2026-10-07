@@ -3,9 +3,6 @@
 
 const asset = (n) => `/assets/${n}`;
 
-const DESC =
-  "A full interior transformation by HAVI'S DESIGN — reworking the layout, light and materials to create a space that is both functional and timeless. Custom joinery, considered finishes and careful detailing throughout.";
-
 export const DEFAULT_SITE = {
   settings: {
     hero: {

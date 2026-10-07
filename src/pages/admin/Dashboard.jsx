@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useOutletContext, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { FiCalendar, FiClock, FiCheckCircle, FiMail, FiArrowRight } from "react-icons/fi";
@@ -75,7 +75,7 @@ function buildMonthlyData(monthly) {
   return result;
 }
 
-const CustomTooltip = ({ active, payload, label, colors }) => {
+const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 4px 15px rgba(0,0,0,0.06)" }}>

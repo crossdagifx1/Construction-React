@@ -88,7 +88,6 @@ app.use(
 app.use("/api/tech", techRoutes);
 
 // ── Global error capture middleware ───────────────────────────────────────
-// eslint-disable-next-line no-unused-vars
 app.use(async (err, req, res, _next) => {
   console.error("[Server Error]", err);
 

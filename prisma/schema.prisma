@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Admin {
@@ -17,7 +16,6 @@ model Admin {
   superKey     String?  // extra secret for tech ops
   createdAt    DateTime @default(now())
 }
-
 
 /// Flexible key/JSON store for grouped content: "hero", "about", "contact", "marquee".
 model Setting {
@@ -31,7 +29,7 @@ model Service {
   order     Int      @default(0)
   icon      String   @default("FiPenTool")
   title     String
-  about     String
+  about     String   @db.Text
   createdAt DateTime @default(now())
 }
 
@@ -41,25 +39,25 @@ model ProcessStep {
   step      String
   icon      String   @default("FiSearch")
   title     String
-  about     String
+  about     String   @db.Text
   createdAt DateTime @default(now())
 }
 
 model Project {
   id          String   @id @default(cuid())
   order       Int      @default(0)
-  slug        String?
+  slug        String?  @unique
   title       String
   tag         String
-  imageUrl    String
+  imageUrl    String   @db.Text
   wide        Boolean  @default(false)
   // Detail-page content
-  description String?
+  description String?  @db.Text
   year        String?
   location    String?
   area        String?
-  beforeUrl   String?
-  afterUrl    String?
+  beforeUrl   String?  @db.Text
+  afterUrl    String?  @db.Text
   gallery     Json?
   createdAt   DateTime @default(now())
 }
@@ -69,8 +67,8 @@ model Testimonial {
   order     Int      @default(0)
   name      String
   post      String
-  quote     String
-  imageUrl  String?
+  quote     String   @db.Text
+  imageUrl  String?  @db.Text
   createdAt DateTime @default(now())
 }
 
@@ -79,7 +77,7 @@ model ContactMessage {
   name      String
   email     String
   phone     String?
-  message   String
+  message   String   @db.Text
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
@@ -89,9 +87,9 @@ model BlogPost {
   order     Int      @default(0)
   slug      String   @unique
   title     String
-  excerpt   String
-  content   String   // Can hold markdown, text or simple HTML
-  imageUrl  String
+  excerpt   String   @db.Text
+  content   String   @db.LongText // Can hold markdown, text or simple HTML
+  imageUrl  String   @db.Text
   category  String
   author    String   @default("HAVI'S DESIGN")
   readTime  String   @default("5 min read")
@@ -105,12 +103,12 @@ model AdPost {
   order        Int      @default(0)
   title        String
   type         String   // E.g., "Material Supply", "Machinery Rental", etc.
-  description  String
+  description  String   @db.Text
   price        String?  // E.g., "Negotiable", "ETB 15,000/day"
   location     String   @default("Addis Ababa")
   contactPhone String
   contactEmail String?
-  imageUrl     String
+  imageUrl     String   @db.Text
   features     Json?    // Array of key specifications/highlights
   approved     Boolean  @default(true)
   featured     Boolean  @default(false)
@@ -132,15 +130,15 @@ model Booking {
   meetingType        String    @default("free_consultation") // "free_consultation" | "site_visit" | "design_review" | "project_kickoff"
   date               DateTime
   timeSlot           String    // e.g. "09:00"
-  siteAddress        String?   // For site visit meetings
+  siteAddress        String?   @db.Text // For site visit meetings
   budget             String?   // e.g. "ETB 50,000 – 100,000"
-  projectDescription String?   // Client's detailed description
-  message            String?   // Legacy short message
+  projectDescription String?   @db.Text // Client's detailed description
+  message            String?   @db.Text // Legacy short message
   status             String    @default("pending") // pending | verified | confirmed | completed | cancelled
   verifiedAt         DateTime? // Timestamp of phone verification
-  confirmedNote      String?   // Admin-written note shown to user after lookup (what to bring, etc.)
-  meetingLink        String?   // Zoom/Google Meet URL shown to user after confirmation
-  adminNote          String?   // Internal admin-only notes (NOT shown to user)
+  confirmedNote      String?   @db.Text // Admin-written note shown to user after lookup (what to bring, etc.)
+  meetingLink        String?   @db.Text // Zoom/Google Meet URL shown to user after confirmation
+  adminNote          String?   @db.Text // Internal admin-only notes (NOT shown to user)
   reminderSent       Boolean   @default(false)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -158,10 +156,10 @@ model ChatSession {
 
 model ChatMessage {
   id        String      @id @default(cuid())
-  session   ChatSession @relation(fields: [sessionId], references: [id])
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   sessionId String
   role      String      // "user" | "assistant"
-  content   String
+  content   String      @db.Text
   createdAt DateTime    @default(now())
 }
 
@@ -171,7 +169,7 @@ model Notification {
   id        String   @id @default(cuid())
   type      String   // "booking" | "message" | "chat"
   title     String
-  body      String
+  body      String   @db.Text
   read      Boolean  @default(false)
   refId     String?
   createdAt DateTime @default(now())
@@ -183,12 +181,12 @@ model AiLog {
   id         String   @id @default(cuid())
   provider   String   // "openrouter" | "gemini" | "static"
   model      String
-  prompt     String
-  response   String?
+  prompt     String   @db.Text
+  response   String?  @db.LongText
   tokens     Int?
   latencyMs  Int?
   success    Boolean  @default(true)
-  errorMsg   String?
+  errorMsg   String?  @db.Text
   sessionId  String?
   createdAt  DateTime @default(now())
 }
@@ -200,8 +198,8 @@ model ErrorLog {
   severity   String    @default("ERROR") // "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL"
   route      String?
   method     String?
-  message    String
-  stack      String?
+  message    String    @db.Text
+  stack      String?   @db.LongText
   meta       Json?
   resolved   Boolean   @default(false)
   resolvedAt DateTime?

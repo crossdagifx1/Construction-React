@@ -4,7 +4,6 @@ import {
   FiLayers,
   FiHome,
   FiTool,
-  FiHeadphones,
   FiSearch,
   FiCompass,
   FiBox,

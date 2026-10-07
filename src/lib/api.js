@@ -6,6 +6,8 @@ export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+
 async function request(path, { method = "GET", body, auth = false, isForm = false } = {}) {
   const headers = {};
   if (!isForm) headers["Content-Type"] = "application/json";
@@ -14,7 +16,7 @@ async function request(path, { method = "GET", body, auth = false, isForm = fals
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API_BASE}/api${path}`, {
     method,
     headers,
     body: isForm ? body : body ? JSON.stringify(body) : undefined,

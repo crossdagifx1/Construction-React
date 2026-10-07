@@ -9,6 +9,7 @@
     "server": "node server/index.js",
     "server:dev": "nodemon server/index.js",
     "build": "vite build",
+    "deploy:hostinger": "vite build && node scripts/deploy_to_hostinger.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "prisma:generate": "prisma generate",

@@ -9,7 +9,6 @@ const Hero = () => {
   const ref = useRef(null);
   const { data } = useSiteData();
   const hero = data.settings.hero;
-  const contact = data.settings.contact || {};
 
   const { scrollYProgress } = useScroll({
     target: ref,

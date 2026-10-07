@@ -1,13 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBooking } from "./useBooking";
 import QRCode from "qrcode";
 import { 
   FiClock, FiPhoneCall, FiCheckCircle, FiAward, FiXCircle, 
-  FiCoffee, FiMapPin, FiCompass, FiBriefcase, FiUser, 
-  FiCalendar, FiMail, FiTrash2, FiSearch, FiRefreshCw,
-  FiChevronLeft, FiChevronRight, FiEdit2, FiInfo, FiPlusSquare,
-  FiFileText, FiSliders, FiLink, FiCheckSquare, FiPlus, FiAlertCircle, FiDownload
+  FiCoffee, FiMapPin, FiCompass, FiBriefcase,
+  FiCalendar, FiFileText, FiLink, FiAlertCircle, FiDownload
 } from "react-icons/fi";
 
 // ── Design tokens (matches landing page) ─────────────────────────────────────

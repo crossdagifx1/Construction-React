@@ -5,7 +5,7 @@ import { useBooking } from "../components/booking/useBooking";
 import { 
   FiAward, FiCompass, FiZap, FiSliders, FiUsers, FiSettings, 
   FiSearch, FiClock, FiPhone, FiCheckCircle, FiXCircle, 
-  FiCalendar, FiFileText, FiPhoneCall, FiChevronRight 
+  FiCalendar, FiFileText, FiPhoneCall 
 } from "react-icons/fi";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────

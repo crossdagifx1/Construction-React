@@ -166,7 +166,9 @@ const Messages = () => {
     try {
       await api.markMessage(m.id, !m.read);
       setMessages(prev => prev.map(x => x.id === m.id ? { ...x, read: !m.read } : x));
-    } catch {}
+    } catch (err) {
+      console.error("Failed to mark message read status:", err);
+    }
   };
 
   const remove = async (id) => {
@@ -175,7 +177,9 @@ const Messages = () => {
       await api.deleteMessage(id);
       setMessages(prev => prev.filter(x => x.id !== id));
       if (activeId === id) setActiveId(null);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to delete message:", err);
+    }
   };
 
   const filtered = messages.filter(m => {

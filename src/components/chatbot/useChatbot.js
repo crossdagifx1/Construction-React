@@ -23,7 +23,7 @@ export function useChatbot() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState(() => {
+  const [sessionId] = useState(() => {
     const stored = localStorage.getItem(SESSION_KEY);
     if (stored) return stored;
     const newId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);

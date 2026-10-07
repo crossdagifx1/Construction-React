@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../../../lib/api";
 import { 
   FiAlertTriangle, FiPause, FiPlay, FiRefreshCw, FiTrash2, 
-  FiCheckCircle, FiCheck, FiX, FiInfo, FiActivity 
+  FiCheckCircle, FiCheck, FiX 
 } from "react-icons/fi";
 
 const C = {

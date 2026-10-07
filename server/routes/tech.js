@@ -8,13 +8,16 @@ import { requireTechAdmin } from "../auth.js";
 import {
   getProviderStatus,
   getAiStats,
-  getModelQueue,
-  setModelQueue,
+  getPrimaryModels,
+  setPrimaryModels,
   getGeminiModelQueue,
   setGeminiModelQueue,
   getProvidersActive,
   setProvidersActive,
-  OPENROUTER_MODELS,
+  setCustomApiKey,
+  getPrimaryApiKey,
+  maskKey,
+  DEFAULT_PRIMARY_MODELS,
   GEMINI_MODELS,
   generateReply,
 } from "../services/aiEngine.js";
@@ -30,20 +33,24 @@ router.use(requireTechAdmin);
 // ═══════════════════════════════════════════════════════════════════════════
 
 // GET /api/tech/ai/status — live provider ping + model lists + active provider states
+// Strictly hides provider base URL
 router.get("/ai/status", async (req, res) => {
   try {
-    const [status, queue, geminiQ] = await Promise.all([
+    const [status, primaryQueue, geminiQ] = await Promise.all([
       getProviderStatus(),
-      Promise.resolve(getModelQueue()),
+      Promise.resolve(getPrimaryModels()),
       Promise.resolve(getGeminiModelQueue()),
     ]);
+    const rawKey = getPrimaryApiKey();
     res.json({
       providers: status,
       providersActive: getProvidersActive(),
-      modelQueue: queue,
+      primaryModels: primaryQueue,
+      modelQueue: primaryQueue, // backward compatibility
       geminiQueue: geminiQ,
-      allModels: OPENROUTER_MODELS,
       allGeminiModels: GEMINI_MODELS,
+      hasApiKey: !!rawKey,
+      maskedApiKey: maskKey(rawKey),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -109,18 +116,25 @@ router.get("/ai/logs/:id", async (req, res) => {
   }
 });
 
-// PUT /api/tech/ai/config — update model priority/enabled state and provider toggles
+// PUT /api/tech/ai/config — update model priority/enabled state, API key, and provider toggles
 router.put("/ai/config", async (req, res) => {
   try {
-    const { modelQueue: newQueue, geminiQueue: newGeminiQueue, providersActive } = req.body;
-    if (newQueue) setModelQueue(newQueue);
-    if (newGeminiQueue) setGeminiModelQueue(newGeminiQueue);
-    if (providersActive) setProvidersActive(providersActive);
+    const { primaryModels: newPrimary, modelQueue: legacyQueue, geminiQueue: newGeminiQueue, providersActive, apiKey } = req.body;
+    const targetPrimary = newPrimary || legacyQueue;
+    if (targetPrimary) await setPrimaryModels(targetPrimary);
+    if (newGeminiQueue) await setGeminiModelQueue(newGeminiQueue);
+    if (providersActive) await setProvidersActive(providersActive);
+    if (apiKey !== undefined) await setCustomApiKey(apiKey);
+
+    const rawKey = getPrimaryApiKey();
     res.json({
       ok: true,
-      modelQueue: getModelQueue(),
+      primaryModels: getPrimaryModels(),
+      modelQueue: getPrimaryModels(),
       geminiQueue: getGeminiModelQueue(),
       providersActive: getProvidersActive(),
+      hasApiKey: !!rawKey,
+      maskedApiKey: maskKey(rawKey),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -3,10 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatTimeSlot } from "../../components/booking/BookingModal";
 import { 
   FiClock, FiPhoneCall, FiCheckCircle, FiAward, FiXCircle, 
-  FiCoffee, FiMapPin, FiCompass, FiBriefcase, FiUser, 
-  FiCalendar, FiMail, FiTrash2, FiSearch, FiRefreshCw,
-  FiChevronLeft, FiChevronRight, FiEdit2, FiInfo, FiPlusSquare,
-  FiFileText, FiSliders, FiLink, FiCheckSquare, FiPlus, FiAlertCircle, FiInbox
+  FiCoffee, FiMapPin, FiCompass, FiBriefcase, FiRefreshCw, FiInbox
 } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
@@ -394,7 +391,9 @@ export default function BookingsManager() {
         const statsData = await statsRes.json();
         setStats(statsData);
       }
-    } catch {}
+    } catch (err) {
+      console.error("Failed to load bookings data:", err);
+    }
     setLoading(false);
   }, [page, search, filterStatus, filterType]);
 
@@ -415,7 +414,9 @@ export default function BookingsManager() {
         const data = await res.json();
         setDailyBookings(data.bookings || []);
       }
-    } catch {}
+    } catch (err) {
+      console.error("Failed to fetch daily bookings:", err);
+    }
     setDailyLoading(false);
   }, []);
 
@@ -428,7 +429,6 @@ export default function BookingsManager() {
   // Block a slot
   const handleBlockSlot = async (slot) => {
     setBlockingSlot(slot);
-    const dateString = selectedCalDay.toISOString().split("T")[0];
     try {
       const res = await fetch(`${API}/api/bookings`, {
         method: "POST",
@@ -449,7 +449,9 @@ export default function BookingsManager() {
         await fetchDailyBookings(selectedCalDay);
         load();
       }
-    } catch {}
+    } catch (err) {
+      console.error("Failed to block slot:", err);
+    }
     setBlockingSlot(null);
   };
 
@@ -466,7 +468,9 @@ export default function BookingsManager() {
         await fetchDailyBookings(selectedCalDay);
         load();
       }
-    } catch {}
+    } catch (err) {
+      console.error("Failed to unblock slot:", err);
+    }
     setBlockingSlot(null);
   };
 

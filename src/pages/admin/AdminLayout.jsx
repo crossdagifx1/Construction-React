@@ -7,7 +7,7 @@ import {
   FiGrid, FiBell, FiCalendar, FiMail, FiMessageSquare, 
   FiLayout, FiInfo, FiSliders, FiActivity, FiBriefcase, 
   FiStar, FiBookOpen, FiTag, FiPhone, FiCpu, FiAlertTriangle, 
-  FiFileText, FiLayers, FiLogOut 
+  FiFileText, FiLayers
 } from "react-icons/fi";
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
@@ -75,7 +75,9 @@ function useNotificationCount(token) {
         const data = await res.json();
         setCount(data.count || 0);
       }
-    } catch {}
+    } catch (_err) {
+      // ignore notification count polling errors
+    }
   }, [token]);
 
   useEffect(() => {
@@ -91,7 +93,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const { admin, isTechAdmin } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [theme, setTheme] = useState("light");
+  const [theme] = useState("light");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 

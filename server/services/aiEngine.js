@@ -1,72 +1,163 @@
 /**
  * AI Engine Service — Multi-provider fallback orchestrator
  *
- * Chain:  OpenRouter (10 free models) → Gemini multi-model chain → Static fallback
- * All logs are fire-and-forget (non-blocking). Every call has a hard timeout.
+ * Chain: Primary AI (DeepSeek v4.1 / v4-flash, OpenAI-compatible) → Gemini fallback → OpenRouter fallback → Static fallback
+ * The provider base URL is kept strictly server-side and never exposed to the frontend/client.
+ * Settings and models can be managed and persisted via Tech Admin.
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "../db.js";
 
-// ── Provider Detection ────────────────────────────────────────────────────
-const hasOpenRouter =
-  process.env.OPENROUTER_API_KEY &&
-  !process.env.OPENROUTER_API_KEY.includes("your-");
-
-const hasGemini =
-  process.env.GEMINI_API_KEY &&
-  !process.env.GEMINI_API_KEY.includes("your-");
-
-const genAI = hasGemini
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
-
-// ── OpenRouter Free Models ────────────────────────────────────────────────
-// Priority order: fastest & most reliable free models first
-export const OPENROUTER_MODELS = [
-  { id: "nex-agi/nex-n2.5-mini:free",                         label: "Nex N2.5 Mini",                    priority: 1,  enabled: true },
-  { id: "nvidia/nemotron-3.5-lightning:free",                 label: "NVIDIA Nemotron 3.5 Lightning",    priority: 2,  enabled: true },
-  { id: "qwen/qwen3.8-27b:free",                              label: "Qwen 3.8 27B",                     priority: 3,  enabled: true },
-  { id: "inclusionai/ling-3.0-flash-vl:free",                 label: "Ling 3.0 Flash VL",                priority: 4,  enabled: true },
-  { id: "liquid/lfm-2.5-2.6b:free",                           label: "LFM 2.5 2.6B",                     priority: 5,  enabled: true },
-  { id: "dots-studio/dots-3-note-preview:free",               label: "Dots 3 Note Preview",              priority: 6,  enabled: true },
-  { id: "thinkingmachines/inkling-small:free",                label: "Inkling Small",                    priority: 7,  enabled: true },
-  { id: "nex-agi/nex-n2.5-pro:free",                          label: "Nex N2.5 Pro",                     priority: 8,  enabled: true },
+// ── Default Primary Models ────────────────────────────────────────────────
+export const DEFAULT_PRIMARY_MODELS = [
+  { id: "deepseek-v4-flash", label: "DeepSeek v4 Flash", priority: 1, enabled: true, tier: "standard" },
+  { id: "deepseek-v4.1",     label: "DeepSeek v4.1",     priority: 2, enabled: true, tier: "high" },
 ];
 
-// ── Gemini Models (priority by free-tier quota — best limits first) ───────
-// RPM / Tokens-per-min / RPD from the API dashboard
+// ── Gemini Fallback Models ────────────────────────────────────────────────
 export const GEMINI_MODELS = [
-  { id: "gemini-3.6-flash",              label: "Gemini 3.6 Flash",          tier: "standard",  priority: 1,  enabled: true },
-  { id: "gemini-2.5-flash",              label: "Gemini 2.5 Flash",          tier: "standard",  priority: 2,  enabled: true },
-  { id: "gemini-1.5-flash",              label: "Gemini 1.5 Flash",          tier: "legacy",    priority: 3,  enabled: true },
-  { id: "gemini-2.0-flash",              label: "Gemini 2.0 Flash",          tier: "legacy",    priority: 4,  enabled: true },
+  { id: "gemini-2.5-flash",  label: "Gemini 2.5 Flash",  tier: "standard",  priority: 1,  enabled: true },
+  { id: "gemini-1.5-flash",  label: "Gemini 1.5 Flash",  tier: "standard",  priority: 2,  enabled: true },
+  { id: "gemini-2.0-flash",  label: "Gemini 2.0 Flash",  tier: "legacy",    priority: 3,  enabled: true },
 ];
 
-// In-memory queues (can be reordered by Tech Admin)
-let modelQueue      = [...OPENROUTER_MODELS].filter((m) => m.enabled);
-let geminiQueue     = [...GEMINI_MODELS].filter((m) => m.enabled);
+// ── OpenRouter Models (Optional secondary fallback) ───────────────────────
+export const OPENROUTER_MODELS = [
+  { id: "nex-agi/nex-n2.5-mini:free",         label: "Nex N2.5 Mini",         priority: 1, enabled: true },
+  { id: "nvidia/nemotron-3.5-lightning:free", label: "Nemotron 3.5 Lightning", priority: 2, enabled: true },
+  { id: "qwen/qwen3.8-27b:free",              label: "Qwen 3.8 27B",          priority: 3, enabled: true },
+];
 
-// In-memory provider toggles (can be disabled by Tech Admin)
-let openRouterActive = true;
-let geminiActive     = true;
-let staticActive     = true;
+// In-memory state (synced with DB `Setting` with key="ai_config")
+let primaryModels = [...DEFAULT_PRIMARY_MODELS];
+let geminiModels  = [...GEMINI_MODELS];
+let customApiKey  = null; // If set in DB/admin, overrides process.env.AI_API_KEY
 
-export const getModelQueue       = () => modelQueue;
-export const setModelQueue       = (q) => { modelQueue = q; };
-export const getGeminiModelQueue = () => geminiQueue;
-export const setGeminiModelQueue = (q) => { geminiQueue = q; };
+// In-memory provider toggles
+let primaryActive = true;
+let geminiActive  = true;
+let staticActive  = true;
 
-export const getProvidersActive  = () => ({
-  openrouter: openRouterActive,
+let isInitialized = false;
+
+// Provider base URL — KEPT ON SERVER ONLY
+const getBaseUrl = () => process.env.AI_BASE_URL || "https://vyceai.com/v1";
+
+export const getPrimaryApiKey = () => {
+  return customApiKey || process.env.AI_API_KEY || "";
+};
+
+// Mask key for safe UI response (e.g. sk-86da...c87d)
+export const maskKey = (key) => {
+  if (!key || typeof key !== "string") return "";
+  if (key.length <= 8) return "••••••••";
+  return `${key.slice(0, 7)}••••••••${key.slice(-4)}`;
+};
+
+// ── Database Sync / Initialization ─────────────────────────────────────────
+export async function initAiConfig() {
+  try {
+    const record = await prisma.setting.findUnique({ where: { key: "ai_config" } });
+    if (record && record.value && typeof record.value === "object") {
+      const v = record.value;
+      if (Array.isArray(v.primaryModels) && v.primaryModels.length > 0) {
+        primaryModels = v.primaryModels;
+      }
+      if (Array.isArray(v.geminiModels) && v.geminiModels.length > 0) {
+        geminiModels = v.geminiModels;
+      }
+      if (typeof v.apiKey === "string" && v.apiKey.trim()) {
+        customApiKey = v.apiKey.trim();
+      }
+      if (v.providersActive && typeof v.providersActive === "object") {
+        if (v.providersActive.primary !== undefined) primaryActive = !!v.providersActive.primary;
+        if (v.providersActive.gemini !== undefined)  geminiActive  = !!v.providersActive.gemini;
+        if (v.providersActive.static !== undefined)  staticActive  = !!v.providersActive.static;
+      }
+    }
+    isInitialized = true;
+  } catch (err) {
+    console.warn("[AI Engine] Failed to load ai_config from DB:", err.message);
+  }
+}
+
+// Ensure DB config is loaded
+async function ensureInit() {
+  if (!isInitialized) {
+    await initAiConfig();
+  }
+}
+
+// Save in-memory config back to DB
+async function persistConfig() {
+  try {
+    await prisma.setting.upsert({
+      where: { key: "ai_config" },
+      update: {
+        value: {
+          primaryModels,
+          geminiModels,
+          apiKey: customApiKey,
+          providersActive: {
+            primary: primaryActive,
+            gemini: geminiActive,
+            static: staticActive,
+          },
+        },
+      },
+      create: {
+        key: "ai_config",
+        value: {
+          primaryModels,
+          geminiModels,
+          apiKey: customApiKey,
+          providersActive: {
+            primary: primaryActive,
+            gemini: geminiActive,
+            static: staticActive,
+          },
+        },
+      },
+    });
+  } catch (err) {
+    console.warn("[AI Engine] Failed to persist ai_config to DB:", err.message);
+  }
+}
+
+// ── State Getters & Setters ────────────────────────────────────────────────
+export const getPrimaryModels = () => primaryModels;
+export const setPrimaryModels = async (models) => {
+  primaryModels = models.map((m, i) => ({ ...m, priority: i + 1 }));
+  await persistConfig();
+};
+
+export const getGeminiModelQueue = () => geminiModels;
+export const setGeminiModelQueue = async (models) => {
+  geminiModels = models.map((m, i) => ({ ...m, priority: i + 1 }));
+  await persistConfig();
+};
+
+export const setCustomApiKey = async (key) => {
+  if (key && typeof key === "string" && key.trim()) {
+    customApiKey = key.trim();
+  } else if (key === null || key === "") {
+    customApiKey = null;
+  }
+  await persistConfig();
+};
+
+export const getProvidersActive = () => ({
+  primary: primaryActive,
   gemini: geminiActive,
   static: staticActive,
 });
 
-export const setProvidersActive  = ({ openrouter, gemini, static: stat }) => {
-  if (openrouter !== undefined) openRouterActive = !!openrouter;
-  if (gemini !== undefined)     geminiActive     = !!gemini;
-  if (stat !== undefined)       staticActive     = !!stat;
+export const setProvidersActive = async ({ primary, gemini, static: stat }) => {
+  if (primary !== undefined) primaryActive = !!primary;
+  if (gemini !== undefined)  geminiActive  = !!gemini;
+  if (stat !== undefined)    staticActive  = !!stat;
+  await persistConfig();
 };
 
 // ── Non-blocking log ──────────────────────────────────────────────────────
@@ -87,41 +178,48 @@ async function fetchWithTimeout(url, options, ms = 10000) {
   }
 }
 
-// ── OpenRouter Call ────────────────────────────────────────────────────────
-async function callOpenRouter(modelId, messages) {
+// ── Primary AI Call (OpenAI-compatible) ────────────────────────────────────
+async function callPrimaryAI(modelId, messages) {
+  const apiKey = getPrimaryApiKey();
+  if (!apiKey) throw new Error("Primary AI API key is not configured");
+
+  const baseUrl = getBaseUrl().replace(/\/+$/, "");
+  const url = `${baseUrl}/chat/completions`;
+
   const res = await fetchWithTimeout(
-    "https://openrouter.ai/api/v1/chat/completions",
+    url,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://havisdesign.com",
-        "X-Title": "HAVI Design AI Assistant",
       },
       body: JSON.stringify({
         model: modelId,
         messages,
-        max_tokens: 350,
+        max_tokens: 450,
         temperature: 0.7,
       }),
     },
-    3500 // 3.5s per OpenRouter model
+    7000 // 7s timeout
   );
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `OpenRouter HTTP ${res.status}`);
+    throw new Error(err.error?.message || err.message || `HTTP ${res.status}`);
   }
 
   const data = await res.json();
   const reply = data.choices?.[0]?.message?.content?.trim();
-  if (!reply) throw new Error("Empty response from OpenRouter");
+  if (!reply) throw new Error("Empty response from AI Provider");
   return { reply, tokens: data.usage?.total_tokens ?? null };
 }
 
-// ── Gemini Call (accepts any model ID) ────────────────────────────────────
+// ── Gemini Call ───────────────────────────────────────────────────────────
 async function callGemini(systemPrompt, history, userMessage, modelId) {
+  if (!process.env.GEMINI_API_KEY) throw new Error("Gemini API key is not configured");
+
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({
     model: modelId,
     systemInstruction: systemPrompt,
@@ -135,7 +233,7 @@ async function callGemini(systemPrompt, history, userMessage, modelId) {
     }));
 
   const timeout = new Promise((_, rej) =>
-    setTimeout(() => rej(new Error(`Gemini timeout (${modelId})`)), 10000)
+    setTimeout(() => rej(new Error(`Gemini timeout (${modelId})`)), 9000)
   );
 
   const chat = model.startChat({ history: geminiHistory });
@@ -159,13 +257,15 @@ const getStaticFallback = () =>
 
 // ── Core: Generate Reply ────────────────────────────────────────────────────
 export async function generateReply(systemPrompt, history, userMessage, sessionId = null) {
+  await ensureInit();
   const errors = [];
 
-  // ─── Step 1: OpenRouter — try top 2 enabled models ───────────────────
-  if (openRouterActive && hasOpenRouter && modelQueue.length > 0) {
-    const tryModels = modelQueue.filter((m) => m.enabled).slice(0, 2);
+  // ─── Step 1: Primary AI (DeepSeek v4-flash, DeepSeek v4.1, etc.) ─────────
+  const apiKey = getPrimaryApiKey();
+  if (primaryActive && apiKey && primaryModels.length > 0) {
+    const tryModels = primaryModels.filter((m) => m.enabled);
 
-    const orMessages = [
+    const formattedMessages = [
       { role: "system", content: systemPrompt },
       ...history
         .filter((m) => m.content?.trim())
@@ -179,21 +279,21 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
     for (const model of tryModels) {
       const start = Date.now();
       try {
-        const { reply, tokens } = await callOpenRouter(model.id, orMessages);
+        const { reply, tokens } = await callPrimaryAI(model.id, formattedMessages);
         const latencyMs = Date.now() - start;
 
         logAsync({
-          provider: "openrouter", model: model.id,
+          provider: "primary", model: model.id,
           prompt: userMessage.slice(0, 500), response: reply.slice(0, 1000),
           tokens, latencyMs, success: true, sessionId,
         });
 
-        return { reply, provider: "openrouter", model: model.id };
+        return { reply, provider: "primary", model: model.id };
       } catch (err) {
         const latencyMs = Date.now() - start;
-        errors.push(`OR/${model.id}: ${err.message}`);
+        errors.push(`Primary/${model.id}: ${err.message}`);
         logAsync({
-          provider: "openrouter", model: model.id,
+          provider: "primary", model: model.id,
           prompt: userMessage.slice(0, 500), latencyMs,
           success: false, errorMsg: err.message.slice(0, 400), sessionId,
         });
@@ -201,9 +301,9 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
     }
   }
 
-  // ─── Step 2: Gemini — try top 2 enabled models ────────────────────
-  if (geminiActive && hasGemini && geminiQueue.length > 0) {
-    const tryGemini = geminiQueue.filter((m) => m.enabled).slice(0, 2);
+  // ─── Step 2: Gemini Fallback ─────────────────────────────────────────────
+  if (geminiActive && process.env.GEMINI_API_KEY && geminiModels.length > 0) {
+    const tryGemini = geminiModels.filter((m) => m.enabled).slice(0, 2);
 
     for (const gModel of tryGemini) {
       const start = Date.now();
@@ -230,7 +330,7 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
     }
   }
 
-  // ─── Step 3: Static Fallback (always works unless turned off) ─────────
+  // ─── Step 3: Static Fallback ─────────────────────────────────────────────
   if (staticActive) {
     const reply = getStaticFallback();
     logAsync({
@@ -240,12 +340,11 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
     });
 
     if (errors.length) {
-      console.warn("[AI Engine] Fallback chain exhausted → Static fallback used");
+      console.warn("[AI Engine] Fallbacks used. Errors:", errors.join(" | "));
     }
 
     return { reply, provider: "static", model: "static-fallback" };
   } else {
-    // If static is also disabled, return custom suspended status
     const reply = "Our AI Assistant support is temporarily unavailable. If you would like to schedule a free design consultation, please click below. [Book Consultation]";
     logAsync({
       provider: "suspended", model: "none",
@@ -256,37 +355,60 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
   }
 }
 
-// ── Provider Status ────────────────────────────────────────────────────────
+// ── Provider Status (Base URL strictly hidden from output) ─────────────────
 export async function getProviderStatus() {
+  await ensureInit();
   const results = [];
+  const apiKey = getPrimaryApiKey();
 
-  if (hasOpenRouter) {
+  // Test Primary Provider (DeepSeek / OpenAI-compatible)
+  if (apiKey) {
     const start = Date.now();
     try {
+      const baseUrl = getBaseUrl().replace(/\/+$/, "");
       const res = await fetchWithTimeout(
-        "https://openrouter.ai/api/v1/models",
-        { headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}` } },
+        `${baseUrl}/models`,
+        { headers: { Authorization: `Bearer ${apiKey}` } },
         6000
       );
       results.push({
-        provider: "openrouter",
+        provider: "primary",
+        label: "Primary AI",
         status: res.ok ? "online" : "error",
         latencyMs: Date.now() - start,
-        models: modelQueue.filter((m) => m.enabled).length,
-        totalModels: OPENROUTER_MODELS.length,
+        models: primaryModels.filter((m) => m.enabled).length,
+        totalModels: primaryModels.length,
         configured: true,
+        activeModel: primaryModels.find((m) => m.enabled)?.label ?? "None",
+        maskedApiKey: maskKey(apiKey),
       });
     } catch (err) {
       results.push({
-        provider: "openrouter", status: "offline",
-        latencyMs: Date.now() - start, error: err.message, configured: true,
+        provider: "primary",
+        label: "Primary AI",
+        status: "offline",
+        latencyMs: Date.now() - start,
+        error: err.message,
+        configured: true,
+        models: primaryModels.filter((m) => m.enabled).length,
+        totalModels: primaryModels.length,
+        maskedApiKey: maskKey(apiKey),
       });
     }
   } else {
-    results.push({ provider: "openrouter", status: "not-configured", configured: false });
+    results.push({
+      provider: "primary",
+      label: "Primary AI",
+      status: "not-configured",
+      configured: false,
+      models: 0,
+      totalModels: primaryModels.length,
+      maskedApiKey: "",
+    });
   }
 
-  if (hasGemini) {
+  // Test Gemini
+  if (process.env.GEMINI_API_KEY) {
     const start = Date.now();
     try {
       const res = await fetchWithTimeout(
@@ -296,26 +418,36 @@ export async function getProviderStatus() {
       );
       results.push({
         provider: "gemini",
+        label: "Gemini AI",
         status: res.ok ? "online" : "error",
         latencyMs: Date.now() - start,
-        models: geminiQueue.filter((m) => m.enabled).length,
-        totalModels: GEMINI_MODELS.length,
+        models: geminiModels.filter((m) => m.enabled).length,
+        totalModels: geminiModels.length,
         configured: true,
-        activeModel: geminiQueue.find((m) => m.enabled)?.label ?? "none",
+        activeModel: geminiModels.find((m) => m.enabled)?.label ?? "None",
       });
     } catch (err) {
       results.push({
-        provider: "gemini", status: "offline",
-        latencyMs: Date.now() - start, error: err.message, configured: true,
+        provider: "gemini",
+        label: "Gemini AI",
+        status: "offline",
+        latencyMs: Date.now() - start,
+        error: err.message,
+        configured: true,
       });
     }
   } else {
-    results.push({ provider: "gemini", status: "not-configured", configured: false });
+    results.push({ provider: "gemini", label: "Gemini AI", status: "not-configured", configured: false });
   }
 
+  // Static
   results.push({
-    provider: "static", status: "always-online", configured: true,
-    models: 5, totalModels: 5,
+    provider: "static",
+    label: "Static Fallback",
+    status: "always-online",
+    configured: true,
+    models: STATIC_FALLBACKS.length,
+    totalModels: STATIC_FALLBACKS.length,
   });
 
   return results;

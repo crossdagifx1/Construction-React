@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import CollectionEditor from "../../components/admin/CollectionEditor";
 import { TextField, TextArea, ImageInput, Label } from "../../components/admin/ui";
 

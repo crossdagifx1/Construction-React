@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { FiPlus, FiTrash2, FiEdit2, FiX, FiLoader } from "react-icons/fi";
 import { api } from "../../lib/api";
 import { PageTitle, Card } from "./ui";
@@ -20,16 +20,19 @@ const CollectionEditor = ({ resource, title, subtitle, blank, renderRow, renderF
   const [draft, setDraft] = useState(null); // current item being edited/created
   const [saving, setSaving] = useState(false);
 
-  const load = () =>
-    api
-      .list(resource)
-      .then(setItems)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+  const load = useCallback(
+    () =>
+      api
+        .list(resource)
+        .then(setItems)
+        .catch((e) => setError(e.message))
+        .finally(() => setLoading(false)),
+    [resource]
+  );
 
   useEffect(() => {
     load();
-  }, [resource]);
+  }, [load]);
 
   const startNew = () => setDraft({ ...blank, _new: true });
   const startEdit = (item) => setDraft({ ...item });
@@ -40,7 +43,7 @@ const CollectionEditor = ({ resource, title, subtitle, blank, renderRow, renderF
     setSaving(true);
     setError("");
     try {
-      const { _new, id, createdAt, ...data } = draft;
+      const { _new, id, _createdAt, ...data } = draft;
       if (_new) await api.create(resource, data);
       else await api.update(resource, id, data);
       setDraft(null);
