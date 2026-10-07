@@ -17,8 +17,9 @@ const Login = () => {
     e.preventDefault();
     setBusy(true);
     setError("");
+    const cleanEmail = email.trim();
     try {
-      const loggedInAdmin = await login(email, password);
+      const loggedInAdmin = await login(cleanEmail, password);
       if (loggedInAdmin?.role === "TECHNICAL_ADMIN") {
         navigate("/admin/tech/ai");
       } else {
