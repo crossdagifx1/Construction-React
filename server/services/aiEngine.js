@@ -194,7 +194,7 @@ async function fetchWithTimeout(url, options, ms = 10000) {
 
 // ── Primary AI Call (OpenAI-compatible) ────────────────────────────────────
 async function callPrimaryAI(modelId, messages) {
-  const apiKey = getPrimaryApiKey();
+  const apiKey = await getPrimaryApiKey();
   if (!apiKey) throw new Error("Primary AI API key is not configured");
 
   const baseUrl = getBaseUrl().replace(/\/+$/, "");
@@ -275,7 +275,7 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
   const errors = [];
 
   // ─── Step 1: Primary AI (DeepSeek v4-flash, DeepSeek v4.1, etc.) ─────────
-  const apiKey = getPrimaryApiKey();
+  const apiKey = await getPrimaryApiKey();
   if (primaryActive && apiKey && primaryModels.length > 0) {
     const tryModels = primaryModels.filter((m) => m.enabled);
 
@@ -373,7 +373,7 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
 export async function getProviderStatus() {
   await ensureInit();
   const results = [];
-  const apiKey = getPrimaryApiKey();
+  const apiKey = await getPrimaryApiKey();
 
   // Test Primary Provider (DeepSeek / OpenAI-compatible)
   if (apiKey) {
