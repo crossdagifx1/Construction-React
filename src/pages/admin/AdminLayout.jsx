@@ -10,7 +10,7 @@ import {
   FiFileText, FiLayers
 } from "react-icons/fi";
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+import { API_BASE } from "../../lib/api";
 
 const NAV_GROUPS = [
   {
@@ -91,7 +91,7 @@ function useNotificationCount(token) {
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { admin, isTechAdmin } = useAuth();
+  const { admin, isTechAdmin, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme] = useState("light");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -101,7 +101,7 @@ export default function AdminLayout() {
   const { count: notifCount, refresh: refreshNotifs } = useNotificationCount(token);
 
   const handleLogout = () => {
-    localStorage.removeItem("havi_admin_token");
+    logout();
     navigate("/admin/login");
   };
 

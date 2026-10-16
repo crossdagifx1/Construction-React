@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiCalendar, FiMail, FiMessageSquare, FiBell, FiTrash2, FiCheckSquare } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+import { API_BASE as API } from "../../lib/api";
 const TOKEN = () => localStorage.getItem("havi_admin_token");
 
 // Design tokens

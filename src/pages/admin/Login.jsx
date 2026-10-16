@@ -1,18 +1,29 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiArrowRight, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiArrowRight, FiArrowLeft, FiEye, FiEyeOff, FiLock } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/HAVI LOGO.png";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, admin, ready } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (ready && admin) {
+      if (admin.role === "TECHNICAL_ADMIN") {
+        navigate("/admin/tech/ai", { replace: true });
+      } else {
+        navigate("/admin", { replace: true });
+      }
+    }
+  }, [admin, ready, navigate]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -27,7 +38,11 @@ const Login = () => {
         navigate("/admin");
       }
     } catch (err) {
-      setError(err.message || "Login failed");
+      if (err.message?.includes("Failed to fetch") || err.message?.includes("NetworkError")) {
+        setError("Cannot connect to server. Please check your network or try again.");
+      } else {
+        setError(err.message || "Invalid email or password");
+      }
     } finally {
       setBusy(false);
     }
@@ -87,6 +102,15 @@ const Login = () => {
             )}
           </button>
         </form>
+
+        <div className="mt-6 flex flex-col items-center gap-3 border-t border-line/60 pt-5 text-center text-xs text-stone">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 font-medium text-stone transition-colors hover:text-ink"
+          >
+            <FiArrowLeft size={14} /> Back to website
+          </Link>
+        </div>
       </motion.div>
     </div>
   );

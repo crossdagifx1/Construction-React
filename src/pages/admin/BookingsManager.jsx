@@ -6,7 +6,7 @@ import {
   FiCoffee, FiMapPin, FiCompass, FiBriefcase, FiRefreshCw, FiInbox
 } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+import { API_BASE as API } from "../../lib/api";
 const TOKEN = () => localStorage.getItem("havi_admin_token");
 
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];

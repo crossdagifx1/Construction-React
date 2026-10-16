@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import { FiCalendar, FiClock, FiCheckCircle, FiMail, FiArrowRight } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+import { API_BASE as API } from "../../lib/api";
 
 function useToken() {
   return localStorage.getItem("havi_admin_token");

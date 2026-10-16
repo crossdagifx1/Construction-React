@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { FiMessageSquare, FiCpu, FiUser, FiTrash2 } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+import { API_BASE as API } from "../../lib/api";
 const TOKEN = () => localStorage.getItem("havi_admin_token");
 
 // Design tokens

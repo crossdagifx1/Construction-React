@@ -1,7 +1,7 @@
 /**
- * AI Engine Service — Multi-provider fallback orchestrator
+ * AI Engine Service ΓÇö Multi-provider fallback orchestrator
  *
- * Chain: Primary AI (DeepSeek v4.1 / v4-flash, OpenAI-compatible) → Gemini fallback → OpenRouter fallback → Static fallback
+ * Chain: Primary AI (DeepSeek v4.1 / v4-flash, OpenAI-compatible) ΓåÆ Gemini fallback ΓåÆ OpenRouter fallback ΓåÆ Static fallback
  * The provider base URL is kept strictly server-side and never exposed to the frontend/client.
  * Settings and models can be managed and persisted via Tech Admin.
  */
@@ -9,20 +9,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "../db.js";
 
-// ── Default Primary Models ────────────────────────────────────────────────
+// ΓöÇΓöÇ Default Primary Models ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export const DEFAULT_PRIMARY_MODELS = [
   { id: "deepseek-v4-flash", label: "DeepSeek v4 Flash", priority: 1, enabled: true, tier: "standard" },
   { id: "deepseek-v4.1",     label: "DeepSeek v4.1",     priority: 2, enabled: true, tier: "high" },
 ];
 
-// ── Gemini Fallback Models ────────────────────────────────────────────────
+// ΓöÇΓöÇ Gemini Fallback Models ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export const GEMINI_MODELS = [
   { id: "gemini-2.5-flash",  label: "Gemini 2.5 Flash",  tier: "standard",  priority: 1,  enabled: true },
   { id: "gemini-1.5-flash",  label: "Gemini 1.5 Flash",  tier: "standard",  priority: 2,  enabled: true },
   { id: "gemini-2.0-flash",  label: "Gemini 2.0 Flash",  tier: "legacy",    priority: 3,  enabled: true },
 ];
 
-// ── OpenRouter Models (Optional secondary fallback) ───────────────────────
+// ΓöÇΓöÇ OpenRouter Models (Optional secondary fallback) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export const OPENROUTER_MODELS = [
   { id: "nex-agi/nex-n2.5-mini:free",         label: "Nex N2.5 Mini",         priority: 1, enabled: true },
   { id: "nvidia/nemotron-3.5-lightning:free", label: "Nemotron 3.5 Lightning", priority: 2, enabled: true },
@@ -30,9 +30,10 @@ export const OPENROUTER_MODELS = [
 ];
 
 // In-memory state (synced with DB `Setting` with key="ai_config")
-let primaryModels = [...DEFAULT_PRIMARY_MODELS];
-let geminiModels  = [...GEMINI_MODELS];
-let customApiKey  = null; // If set in DB/admin, overrides process.env.AI_API_KEY
+let primaryModels   = [...DEFAULT_PRIMARY_MODELS];
+let geminiModels    = [...GEMINI_MODELS];
+let customProviders = []; // [{ id, label, baseUrl, apiKey, models[], active, priority }]
+let customApiKey    = null; // If set in DB/admin, overrides process.env.AI_API_KEY
 
 // In-memory provider toggles
 let primaryActive = true;
@@ -41,7 +42,7 @@ let staticActive  = true;
 
 let isInitialized = false;
 
-// Provider base URL — KEPT ON SERVER ONLY
+// Provider base URL ΓÇö KEPT ON SERVER ONLY
 const getBaseUrl = () => process.env.AI_BASE_URL || "https://vyceai.com/v1";
 
 export const getPrimaryApiKey = async () => {
@@ -57,11 +58,11 @@ export const getPrimaryApiKeySync = () => {
 // Mask key for safe UI response (e.g. sk-86da...c87d)
 export const maskKey = (key) => {
   if (!key || typeof key !== "string") return "";
-  if (key.length <= 8) return "••••••••";
-  return `${key.slice(0, 7)}••••••••${key.slice(-4)}`;
+  if (key.length <= 8) return "ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó";
+  return `${key.slice(0, 7)}ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó${key.slice(-4)}`;
 };
 
-// ── Database Sync / Initialization ─────────────────────────────────────────
+// ΓöÇΓöÇ Database Sync / Initialization ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export async function initAiConfig() {
   try {
     const record = await prisma.setting.findUnique({ where: { key: "ai_config" } });
@@ -72,6 +73,9 @@ export async function initAiConfig() {
       }
       if (Array.isArray(v.geminiModels) && v.geminiModels.length > 0) {
         geminiModels = v.geminiModels;
+      }
+      if (Array.isArray(v.customProviders)) {
+        customProviders = v.customProviders;
       }
       if (typeof v.apiKey === "string" && v.apiKey.trim()) {
         customApiKey = v.apiKey.trim();
@@ -98,40 +102,69 @@ async function ensureInit() {
 // Save in-memory config back to DB
 async function persistConfig() {
   try {
+    const payload = {
+      primaryModels, geminiModels, customProviders, apiKey: customApiKey,
+      providersActive: { primary: primaryActive, gemini: geminiActive, static: staticActive },
+    };
     await prisma.setting.upsert({
       where: { key: "ai_config" },
-      update: {
-        value: {
-          primaryModels,
-          geminiModels,
-          apiKey: customApiKey,
-          providersActive: {
-            primary: primaryActive,
-            gemini: geminiActive,
-            static: staticActive,
-          },
-        },
-      },
-      create: {
-        key: "ai_config",
-        value: {
-          primaryModels,
-          geminiModels,
-          apiKey: customApiKey,
-          providersActive: {
-            primary: primaryActive,
-            gemini: geminiActive,
-            static: staticActive,
-          },
-        },
-      },
+      update: { value: payload },
+      create: { key: "ai_config", value: payload },
     });
   } catch (err) {
     console.warn("[AI Engine] Failed to persist ai_config to DB:", err.message);
   }
 }
 
-// ── State Getters & Setters ────────────────────────────────────────────────
+// ── Custom Providers ──────────────────────────────────────────────────
+export const getCustomProviders = async () => {
+  await ensureInit();
+  return customProviders.map((p) => ({ ...p, apiKey: maskKey(p.apiKey) }));
+};
+
+export const setCustomProviders = async (providers) => {
+  await ensureInit();
+  customProviders = providers.map((inc, i) => {
+    const old = customProviders.find((e) => e.id === inc.id);
+    const apiKey = (inc.apiKey && !inc.apiKey.includes("\u2022")) ? inc.apiKey : (old?.apiKey || "");
+    return { id: inc.id || `cp-${Date.now()}-${i}`, label: inc.label || inc.id,
+      baseUrl: inc.baseUrl || "", apiKey, models: Array.isArray(inc.models) ? inc.models : [],
+      active: inc.active !== undefined ? !!inc.active : true, priority: i + 1 };
+  });
+  await persistConfig();
+};
+
+export const upsertCustomProvider = async (p) => {
+  await ensureInit();
+  const idx = customProviders.findIndex((e) => e.id === p.id);
+  const old = idx >= 0 ? customProviders[idx] : null;
+  const apiKey = (p.apiKey && !p.apiKey.includes("\u2022")) ? p.apiKey : (old?.apiKey || "");
+  const entry = { id: p.id || `cp-${Date.now()}`, label: p.label || p.id,
+    baseUrl: p.baseUrl || "", apiKey,
+    models: Array.isArray(p.models) ? p.models : (old?.models || []),
+    active: p.active !== undefined ? !!p.active : true,
+    priority: idx >= 0 ? customProviders[idx].priority : customProviders.length + 1 };
+  if (idx >= 0) { customProviders[idx] = entry; } else { customProviders.push(entry); }
+  await persistConfig();
+  return { ...entry, apiKey: maskKey(entry.apiKey) };
+};
+
+export const deleteCustomProvider = async (id) => {
+  await ensureInit();
+  customProviders = customProviders.filter((p) => p.id !== id);
+  await persistConfig();
+};
+
+// Auto-fetch models from any OpenAI-compatible /models endpoint
+export async function fetchProviderModels(baseUrl, apiKey) {
+  const url = `${baseUrl.replace(/\/+$/, "")}/models`;
+  const res = await fetchWithTimeout(url, { headers: { Authorization: `Bearer ${apiKey}` } }, 8000);
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+  const data = await res.json();
+  return (data.data || data.models || []).map((m) => ({ id: m.id, label: m.name || m.id, enabled: true, tier: "standard" }));
+}
+
+// ΓöÇΓöÇ State Getters & Setters ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export const getPrimaryModels = async () => {
   await ensureInit();
   return primaryModels;
@@ -174,14 +207,14 @@ export const setProvidersActive = async ({ primary, gemini, static: stat }) => {
   await persistConfig();
 };
 
-// ── Non-blocking log ──────────────────────────────────────────────────────
+// ΓöÇΓöÇ Non-blocking log ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function logAsync(data) {
   prisma.aiLog.create({ data }).catch((e) =>
     console.warn("[AI Engine] Log write failed:", e.message)
   );
 }
 
-// ── Fetch with timeout ────────────────────────────────────────────────────
+// ΓöÇΓöÇ Fetch with timeout ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function fetchWithTimeout(url, options, ms = 10000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
@@ -192,7 +225,7 @@ async function fetchWithTimeout(url, options, ms = 10000) {
   }
 }
 
-// ── Primary AI Call (OpenAI-compatible) ────────────────────────────────────
+// ΓöÇΓöÇ Primary AI Call (OpenAI-compatible) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function callPrimaryAI(modelId, messages) {
   const apiKey = await getPrimaryApiKey();
   if (!apiKey) throw new Error("Primary AI API key is not configured");
@@ -229,7 +262,7 @@ async function callPrimaryAI(modelId, messages) {
   return { reply, tokens: data.usage?.total_tokens ?? null };
 }
 
-// ── Gemini Call ───────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Gemini Call ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function callGemini(systemPrompt, history, userMessage, modelId) {
   if (!process.env.GEMINI_API_KEY) throw new Error("Gemini API key is not configured");
 
@@ -257,7 +290,7 @@ async function callGemini(systemPrompt, history, userMessage, modelId) {
   return { reply };
 }
 
-// ── Static Fallback ────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Static Fallback ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 const STATIC_FALLBACKS = [
   "Thank you for reaching out to HAVI'S DESIGN! We specialize in premium interior design and renovation in Addis Ababa. Would you like to book a free consultation? [Book Consultation]",
   "Great question! Our team would love to help with your design project. Our services start from ETB 15,000 per room. Let's schedule a free consultation to discuss your vision! [Book Consultation]",
@@ -269,39 +302,37 @@ const STATIC_FALLBACKS = [
 const getStaticFallback = () =>
   STATIC_FALLBACKS[Math.floor(Math.random() * STATIC_FALLBACKS.length)];
 
-// ── Core: Generate Reply ────────────────────────────────────────────────────
+// ΓöÇΓöÇ Core: Generate Reply ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export async function generateReply(systemPrompt, history, userMessage, sessionId = null) {
   await ensureInit();
   const errors = [];
+
+  // Build messages once, reused across all providers
+  const formattedMessages = [
+    { role: "system", content: systemPrompt },
+    ...history
+      .filter((m) => m.content?.trim())
+      .map((m) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.content,
+      })),
+    { role: "user", content: userMessage },
+  ];
 
   // ─── Step 1: Primary AI (DeepSeek v4-flash, DeepSeek v4.1, etc.) ─────────
   const apiKey = await getPrimaryApiKey();
   if (primaryActive && apiKey && primaryModels.length > 0) {
     const tryModels = primaryModels.filter((m) => m.enabled);
-
-    const formattedMessages = [
-      { role: "system", content: systemPrompt },
-      ...history
-        .filter((m) => m.content?.trim())
-        .map((m) => ({
-          role: m.role === "assistant" ? "assistant" : "user",
-          content: m.content,
-        })),
-      { role: "user", content: userMessage },
-    ];
-
     for (const model of tryModels) {
       const start = Date.now();
       try {
         const { reply, tokens } = await callPrimaryAI(model.id, formattedMessages);
         const latencyMs = Date.now() - start;
-
         logAsync({
           provider: "primary", model: model.id,
           prompt: userMessage.slice(0, 500), response: reply.slice(0, 1000),
           tokens, latencyMs, success: true, sessionId,
         });
-
         return { reply, provider: "primary", model: model.id };
       } catch (err) {
         const latencyMs = Date.now() - start;
@@ -311,11 +342,42 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
           prompt: userMessage.slice(0, 500), latencyMs,
           success: false, errorMsg: err.message.slice(0, 400), sessionId,
         });
+        if (err.message?.toLowerCase().includes("balance")) break;
       }
     }
   }
 
-  // ─── Step 2: Gemini Fallback ─────────────────────────────────────────────
+  // ─── Step 2: Custom Providers (in priority order) ─────────────────────────
+  const activeCustom = customProviders
+    .filter((p) => p.active && p.baseUrl && p.apiKey && Array.isArray(p.models) && p.models.length > 0)
+    .sort((a, b) => (a.priority || 99) - (b.priority || 99));
+  for (const cp of activeCustom) {
+    for (const model of cp.models.filter((m) => m.enabled)) {
+      const start = Date.now();
+      try {
+        const res = await fetchWithTimeout(
+          `${cp.baseUrl.replace(/\/+$/, "")}/chat/completions`,
+          { method: "POST",
+            headers: { Authorization: `Bearer ${cp.apiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ model: model.id, messages: formattedMessages, max_tokens: 450, temperature: 0.7 }) },
+          8000
+        );
+        if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+        const data  = await res.json();
+        const reply = data.choices?.[0]?.message?.content?.trim();
+        if (!reply) throw new Error("Empty response from custom provider");
+        logAsync({ provider: `custom:${cp.id}`, model: model.id, prompt: userMessage.slice(0, 500),
+          response: reply.slice(0, 1000), tokens: data.usage?.total_tokens ?? null,
+          latencyMs: Date.now() - start, success: true, sessionId });
+        return { reply, provider: `custom:${cp.id}`, model: model.id };
+      } catch (err) {
+        logAsync({ provider: `custom:${cp.id}`, model: model.id, prompt: userMessage.slice(0, 500),
+          latencyMs: Date.now() - start, success: false, errorMsg: err.message.slice(0, 400), sessionId });
+      }
+    }
+  }
+
+  // ─── Step 3: Gemini Fallback ─────────────────────────────────────────────
   if (geminiActive && process.env.GEMINI_API_KEY && geminiModels.length > 0) {
     const tryGemini = geminiModels.filter((m) => m.enabled).slice(0, 2);
 
@@ -344,7 +406,7 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
     }
   }
 
-  // ─── Step 3: Static Fallback ─────────────────────────────────────────────
+  // ΓöÇΓöÇΓöÇ Step 3: Static Fallback ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
   if (staticActive) {
     const reply = getStaticFallback();
     logAsync({
@@ -369,7 +431,7 @@ export async function generateReply(systemPrompt, history, userMessage, sessionI
   }
 }
 
-// ── Provider Status (Base URL strictly hidden from output) ─────────────────
+// ΓöÇΓöÇ Provider Status (Base URL strictly hidden from output) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export async function getProviderStatus() {
   await ensureInit();
   const results = [];
@@ -421,6 +483,34 @@ export async function getProviderStatus() {
     });
   }
 
+  // Custom providers
+  for (const cp of customProviders) {
+    if (!cp.active) {
+      results.push({ provider: `custom:${cp.id}`, label: cp.label, status: "disabled",
+        configured: !!cp.apiKey, models: (cp.models||[]).filter((m) => m.enabled).length,
+        totalModels: (cp.models||[]).length, isCustom: true, customId: cp.id }); continue;
+    }
+    if (!cp.apiKey || !cp.baseUrl) {
+      results.push({ provider: `custom:${cp.id}`, label: cp.label, status: "not-configured",
+        configured: false, models: 0, totalModels: (cp.models||[]).length, isCustom: true, customId: cp.id }); continue;
+    }
+    const cpStart = Date.now();
+    try {
+      const cpRes = await fetchWithTimeout(`${cp.baseUrl.replace(/\/+$/, "")}/models`,
+        { headers: { Authorization: `Bearer ${cp.apiKey}` } }, 6000);
+      results.push({ provider: `custom:${cp.id}`, label: cp.label,
+        status: cpRes.ok ? "online" : "error", latencyMs: Date.now() - cpStart,
+        models: (cp.models||[]).filter((m) => m.enabled).length, totalModels: (cp.models||[]).length,
+        configured: true, activeModel: (cp.models||[]).find((m) => m.enabled)?.label ?? "None",
+        isCustom: true, customId: cp.id });
+    } catch (err) {
+      results.push({ provider: `custom:${cp.id}`, label: cp.label, status: "offline",
+        latencyMs: Date.now() - cpStart, error: err.message, configured: true,
+        models: (cp.models||[]).filter((m) => m.enabled).length, totalModels: (cp.models||[]).length,
+        isCustom: true, customId: cp.id });
+    }
+  }
+
   // Test Gemini
   if (process.env.GEMINI_API_KEY) {
     const start = Date.now();
@@ -467,7 +557,7 @@ export async function getProviderStatus() {
   return results;
 }
 
-// ── AI Usage Stats ─────────────────────────────────────────────────────────
+// ΓöÇΓöÇ AI Usage Stats ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export async function getAiStats(hours = 24) {
   const since = new Date(Date.now() - hours * 60 * 60 * 1000);
 

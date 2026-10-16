@@ -20,6 +20,11 @@ import {
   DEFAULT_PRIMARY_MODELS,
   GEMINI_MODELS,
   generateReply,
+  getCustomProviders,
+  setCustomProviders,
+  upsertCustomProvider,
+  deleteCustomProvider,
+  fetchProviderModels,
 } from "../services/aiEngine.js";
 
 
@@ -139,6 +144,43 @@ router.put("/ai/config", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// GET /api/tech/ai/providers — list all custom providers (keys masked)
+router.get("/ai/providers", async (_req, res) => {
+  try { res.json(await getCustomProviders()); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST /api/tech/ai/providers — add or update a custom provider
+router.post("/ai/providers", async (req, res) => {
+  try { res.json(await upsertCustomProvider(req.body)); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// PUT /api/tech/ai/providers — replace the full list
+router.put("/ai/providers", async (req, res) => {
+  try {
+    const providers = Array.isArray(req.body) ? req.body : req.body.providers;
+    await setCustomProviders(providers);
+    res.json({ ok: true, providers: await getCustomProviders() });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// DELETE /api/tech/ai/providers/:id — remove a custom provider
+router.delete("/ai/providers/:id", async (req, res) => {
+  try { await deleteCustomProvider(req.params.id); res.json({ ok: true }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST /api/tech/ai/providers/fetch-models — auto-fetch models from any OpenAI-compatible endpoint
+router.post("/ai/providers/fetch-models", async (req, res) => {
+  try {
+    const { baseUrl, apiKey } = req.body;
+    if (!baseUrl || !apiKey) return res.status(400).json({ error: "baseUrl and apiKey are required" });
+    const models = await fetchProviderModels(baseUrl, apiKey);
+    res.json({ ok: true, models });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // POST /api/tech/ai/test — send a test message through the AI engine

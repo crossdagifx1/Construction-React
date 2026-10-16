@@ -6,7 +6,9 @@ export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+export const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? "http://localhost:4000" : "https://construction-react-flax.vercel.app");
 
 async function request(path, { method = "GET", body, auth = false, isForm = false } = {}) {
   const headers = {};
@@ -85,6 +87,11 @@ export const api = {
   techAiLogDetail: (id) => request(`/tech/ai/logs/${id}`, { auth: true }),
   techAiUpdateConfig: (body) => request("/tech/ai/config", { method: "PUT", body, auth: true }),
   techAiTest: (message) => request("/tech/ai/test", { method: "POST", body: { message }, auth: true }),
+  techAiGetProviders: () => request("/tech/ai/providers", { auth: true }),
+  techAiSaveProvider: (body) => request("/tech/ai/providers", { method: "POST", body, auth: true }),
+  techAiUpdateProviders: (providers) => request("/tech/ai/providers", { method: "PUT", body: { providers }, auth: true }),
+  techAiDeleteProvider: (id) => request(`/tech/ai/providers/${id}`, { method: "DELETE", auth: true }),
+  techAiFetchProviderModels: (baseUrl, apiKey) => request("/tech/ai/providers/fetch-models", { method: "POST", body: { baseUrl, apiKey }, auth: true }),
 
   // Error Monitoring
   techErrors: (params = {}) => {

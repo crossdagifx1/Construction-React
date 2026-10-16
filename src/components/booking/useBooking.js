@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+import { API_BASE } from "../../lib/api";
 
 export function useBooking() {
   // --- Calendar Availability States ---

@@ -37,6 +37,7 @@ app.get("/api/health", (_req, res) =>
   res.json({ ok: true, storage: isStorageConfigured() })
 );
 
+
 // Public + auth
 app.use("/api/auth", authRoutes);
 app.use("/api/site", siteRoutes);

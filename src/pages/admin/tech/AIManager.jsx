@@ -112,21 +112,31 @@ export default function AIManager() {
   const [newModelLabel, setNewModelLabel] = useState("");
   const [newModelTier, setNewModelTier] = useState("standard");
 
+  // Custom providers state & modal
+  const [customProviders, setCustomProviders] = useState([]);
+  const [showAddProviderModal, setShowAddProviderModal] = useState(false);
+  const [providerForm, setProviderForm] = useState({ id: "", label: "", baseUrl: "", apiKey: "" });
+  const [fetchingModels, setFetchingModels] = useState(false);
+  const [fetchedModelsList, setFetchedModelsList] = useState([]);
+  const [fetchError, setFetchError] = useState("");
+
   const [savingConfig, setSavingConfig] = useState(false);
-  const [activeTab, setActiveTab] = useState("primary"); // "primary" | "gemini"
+  const [activeTab, setActiveTab] = useState("primary"); // "primary" | "custom" | "gemini"
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, a, l] = await Promise.all([
+      const [s, a, l, cp] = await Promise.all([
         api.techAiStatus(),
         api.techAiStats(168),
         api.techAiLogs({ page: logPage, limit: 20, provider: filterProvider, success: filterSuccess }),
+        api.techAiGetProviders().catch(() => []),
       ]);
       setStatus(s);
       setAiStats(a);
       setLogs(l.logs || []);
       setLogTotal(l.total || 0);
+      setCustomProviders(cp || []);
 
       const pList = s.primaryModels || s.modelQueue || [];
       setPrimaryModelsState(pList);
@@ -184,6 +194,95 @@ export default function AIManager() {
     setNewModelId("");
     setNewModelLabel("");
     setShowAddModal(false);
+  };
+
+  // Custom Providers Handlers
+  const handleFetchModels = async () => {
+    if (!providerForm.baseUrl || !providerForm.apiKey) {
+      setFetchError("Base URL and API Key are required to auto-fetch models.");
+      return;
+    }
+    setFetchingModels(true);
+    setFetchError("");
+    try {
+      const res = await api.techAiFetchProviderModels(providerForm.baseUrl, providerForm.apiKey);
+      if (res.models && res.models.length > 0) {
+        setFetchedModelsList(res.models);
+      } else {
+        setFetchError("No models returned by this endpoint.");
+      }
+    } catch (err) {
+      setFetchError(err.message || "Failed to fetch models");
+    } finally {
+      setFetchingModels(false);
+    }
+  };
+
+  const handleSaveCustomProvider = async () => {
+    if (!providerForm.label.trim() || !providerForm.baseUrl.trim() || !providerForm.apiKey.trim()) {
+      alert("Please provide Provider Name, Base URL, and API Key.");
+      return;
+    }
+    try {
+      const models = fetchedModelsList.length > 0 ? fetchedModelsList : [
+        { id: "default-model", label: "Default Model", enabled: true, tier: "standard" }
+      ];
+      await api.techAiSaveProvider({
+        id: providerForm.id || `cp-${Date.now()}`,
+        label: providerForm.label.trim(),
+        baseUrl: providerForm.baseUrl.trim(),
+        apiKey: providerForm.apiKey.trim(),
+        models,
+        active: true,
+      });
+      setShowAddProviderModal(false);
+      setProviderForm({ id: "", label: "", baseUrl: "", apiKey: "" });
+      setFetchedModelsList([]);
+      setFetchError("");
+      load();
+    } catch (err) {
+      alert("Failed to save custom provider: " + err.message);
+    }
+  };
+
+  const handleDeleteCustomProvider = async (id) => {
+    if (!window.confirm("Remove this custom AI provider?")) return;
+    try {
+      await api.techAiDeleteProvider(id);
+      load();
+    } catch (err) {
+      alert("Failed to delete provider: " + err.message);
+    }
+  };
+
+  const handleToggleCustomModel = async (providerId, modelId) => {
+    const updated = customProviders.map((p) => {
+      if (p.id !== providerId) return p;
+      return {
+        ...p,
+        models: (p.models || []).map((m) => m.id === modelId ? { ...m, enabled: !m.enabled } : m),
+      };
+    });
+    setCustomProviders(updated);
+    try {
+      await api.techAiUpdateProviders(updated);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleProviderActive = async (providerId) => {
+    const updated = customProviders.map((p) => {
+      if (p.id !== providerId) return p;
+      return { ...p, active: !p.active };
+    });
+    setCustomProviders(updated);
+    try {
+      await api.techAiUpdateProviders(updated);
+      load();
+    } catch (err) {
+      alert("Failed to update: " + err.message);
+    }
   };
 
   const toggleProvider = async (name) => {
@@ -405,6 +504,7 @@ export default function AIManager() {
             <div style={{ display: "flex", gap: 6 }}>
               {[
                 ["primary", "⚡ Primary AI (DeepSeek)"],
+                ["custom", `🌐 Custom Providers (${customProviders.length})`],
                 ["gemini", "🛡️ Gemini Fallback"],
               ].map(([key, label]) => (
                 <button
@@ -435,14 +535,30 @@ export default function AIManager() {
                   <FiPlus /> Add Model
                 </button>
               )}
-              <button
-                type="button"
-                onClick={saveConfig}
-                disabled={savingConfig}
-                style={{ padding: "7px 16px", borderRadius: 8, background: C.accent, border: "none", color: "#fff", fontSize: 12, cursor: "pointer", fontWeight: 700 }}
-              >
-                {savingConfig ? "Saving…" : "Save Order"}
-              </button>
+              {activeTab === "custom" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProviderForm({ id: "", label: "", baseUrl: "", apiKey: "" });
+                    setFetchedModelsList([]);
+                    setFetchError("");
+                    setShowAddProviderModal(true);
+                  }}
+                  style={{ ...inputStyle, background: C.surface2, border: `1px solid ${C.border}`, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700 }}
+                >
+                  <FiPlus /> Add Provider
+                </button>
+              )}
+              {activeTab !== "custom" && (
+                <button
+                  type="button"
+                  onClick={saveConfig}
+                  disabled={savingConfig}
+                  style={{ padding: "7px 16px", borderRadius: 8, background: C.accent, border: "none", color: "#fff", fontSize: 12, cursor: "pointer", fontWeight: 700 }}
+                >
+                  {savingConfig ? "Saving…" : "Save Order"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -452,35 +568,234 @@ export default function AIManager() {
 
           {/* Model rows list */}
           <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 440, overflowY: "auto", paddingRight: 4 }}>
-            {activeTab === "primary"
-              ? primaryModels.map((m, i) => (
-                  <ModelRow
-                    key={m.id}
-                    m={m}
-                    i={i}
-                    dragging={draggingPrimary}
-                    onDragStart={setDraggingPrimary}
-                    onDragOver={(to) => movePrimary(draggingPrimary, to)}
-                    onDragEnd={() => setDraggingPrimary(null)}
-                    onToggle={togglePrimary}
-                    onDelete={handleDeletePrimary}
-                    showTier={true}
-                  />
+            {activeTab === "primary" &&
+              primaryModels.map((m, i) => (
+                <ModelRow
+                  key={m.id}
+                  m={m}
+                  i={i}
+                  dragging={draggingPrimary}
+                  onDragStart={setDraggingPrimary}
+                  onDragOver={(to) => movePrimary(draggingPrimary, to)}
+                  onDragEnd={() => setDraggingPrimary(null)}
+                  onToggle={togglePrimary}
+                  onDelete={handleDeletePrimary}
+                  showTier={true}
+                />
+              ))}
+
+            {activeTab === "gemini" &&
+              geminiQueue.map((m, i) => (
+                <ModelRow
+                  key={m.id}
+                  m={m}
+                  i={i}
+                  dragging={draggingGem}
+                  onDragStart={setDraggingGem}
+                  onDragOver={(to) => moveGem(draggingGem, to)}
+                  onDragEnd={() => setDraggingGem(null)}
+                  onToggle={toggleGem}
+                  showTier={true}
+                />
+              ))}
+
+            {activeTab === "custom" && (
+              customProviders.length === 0 ? (
+                <div style={{ padding: "30px 20px", textAlign: "center", color: C.muted, background: C.surface2, borderRadius: 12 }}>
+                  <div style={{ fontSize: 24, marginBottom: 8 }}>🌐</div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>No Custom AI Providers Added</div>
+                  <div style={{ fontSize: 12, marginTop: 4 }}>Add any OpenAI-compatible provider (OpenRouter, Groq, Mistral, Together, vLLM) with automatic model discovery to serve as reliable fallbacks.</div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProviderForm({ id: "", label: "", baseUrl: "", apiKey: "" });
+                      setFetchedModelsList([]);
+                      setFetchError("");
+                      setShowAddProviderModal(true);
+                    }}
+                    style={{ ...inputStyle, marginTop: 14, background: C.accent, color: "#fff", border: "none", cursor: "pointer", fontWeight: 700 }}
+                  >
+                    + Add First Provider
+                  </button>
+                </div>
+              ) : (
+                customProviders.map((cp, idx) => (
+                  <div key={cp.id} style={{ background: C.surface2, border: `1px solid ${C.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: C.muted }}>Fallback #{idx + 1}</span>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: C.text }}>{cp.label}</span>
+                        <span style={{ fontSize: 11, fontFamily: "monospace", color: C.muted, background: "rgba(0,0,0,0.04)", padding: "2px 6px", borderRadius: 4 }}>
+                          {cp.baseUrl.replace(/^https?:\/\//, "").split("/")[0]}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleProviderActive(cp.id)}
+                          style={{
+                            padding: "3px 9px", borderRadius: 12, fontSize: 10, fontWeight: 800, cursor: "pointer", border: "none",
+                            background: cp.active ? "rgba(22,163,74,0.14)" : "rgba(220,38,38,0.14)",
+                            color: cp.active ? C.green : C.red,
+                          }}
+                        >
+                          {cp.active ? "ENABLED" : "PAUSED"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCustomProvider(cp.id)}
+                          style={{ background: "transparent", border: "none", color: C.red, cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }}
+                          title="Delete provider"
+                        >
+                          <FiTrash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    {/* Models associated with this provider */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                      {(cp.models || []).map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => handleToggleCustomModel(cp.id, m.id)}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 8px", borderRadius: 8, fontSize: 11,
+                            background: m.enabled ? C.surface : "rgba(0,0,0,0.03)",
+                            border: `1px solid ${m.enabled ? C.accent : C.border}`,
+                            color: m.enabled ? C.text : C.muted,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: m.enabled ? C.green : C.muted }} />
+                          <span style={{ fontWeight: 600 }}>{m.label || m.id}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))
-              : geminiQueue.map((m, i) => (
-                  <ModelRow
-                    key={m.id}
-                    m={m}
-                    i={i}
-                    dragging={draggingGem}
-                    onDragStart={setDraggingGem}
-                    onDragOver={(to) => moveGem(draggingGem, to)}
-                    onDragEnd={() => setDraggingGem(null)}
-                    onToggle={toggleGem}
-                    showTier={true}
-                  />
-                ))}
+              )
+            )}
           </div>
+
+          {/* Add Custom Provider Modal */}
+          {showAddProviderModal && (
+            <div style={{ marginTop: 16, padding: 16, background: C.surface2, border: `1px solid ${C.border}`, borderRadius: 14 }}>
+              <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
+                <span>Add Custom AI Provider (OpenAI-compatible)</span>
+                <button
+                  type="button"
+                  onClick={() => setShowAddProviderModal(false)}
+                  style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 14 }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 3 }}>Provider Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. OpenRouter, Groq, Mistral"
+                    value={providerForm.label}
+                    onChange={(e) => setProviderForm({ ...providerForm, label: e.target.value })}
+                    style={{ ...inputStyle, width: "100%", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 3 }}>Base URL (OpenAI compatible) *</label>
+                  <input
+                    type="text"
+                    placeholder="https://openrouter.ai/api/v1"
+                    value={providerForm.baseUrl}
+                    onChange={(e) => setProviderForm({ ...providerForm, baseUrl: e.target.value })}
+                    style={{ ...inputStyle, width: "100%", boxSizing: "border-box" }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 3 }}>API Key *</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    type="password"
+                    placeholder="sk-or-v1-..."
+                    value={providerForm.apiKey}
+                    onChange={(e) => setProviderForm({ ...providerForm, apiKey: e.target.value })}
+                    style={{ ...inputStyle, flex: 1, fontFamily: "monospace" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleFetchModels}
+                    disabled={fetchingModels || !providerForm.baseUrl || !providerForm.apiKey}
+                    style={{
+                      ...inputStyle, background: C.cyan, color: "#fff", border: "none",
+                      cursor: "pointer", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 6,
+                    }}
+                  >
+                    <FiRefreshCw className={fetchingModels ? "spin" : ""} />
+                    {fetchingModels ? "Discovering..." : "Auto-Fetch Models"}
+                  </button>
+                </div>
+                {fetchError && (
+                  <div style={{ color: C.red, fontSize: 11, marginTop: 4 }}>{fetchError}</div>
+                )}
+              </div>
+
+              {/* Discovered models list */}
+              {fetchedModelsList.length > 0 && (
+                <div style={{ marginBottom: 12, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 6 }}>
+                    Discovered {fetchedModelsList.length} Models (Select which to enable):
+                  </div>
+                  <div style={{ maxHeight: 140, overflowY: "auto", display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {fetchedModelsList.slice(0, 30).map((m, idx) => (
+                      <span
+                        key={m.id}
+                        onClick={() => {
+                          const updated = [...fetchedModelsList];
+                          updated[idx].enabled = !updated[idx].enabled;
+                          setFetchedModelsList(updated);
+                        }}
+                        style={{
+                          padding: "3px 8px", borderRadius: 6, fontSize: 10, cursor: "pointer",
+                          background: m.enabled ? "rgba(2,132,199,0.12)" : "rgba(0,0,0,0.04)",
+                          color: m.enabled ? C.cyan : C.muted,
+                          fontWeight: m.enabled ? 700 : 500,
+                          border: `1px solid ${m.enabled ? C.cyan : C.border}`,
+                        }}
+                      >
+                        {m.id}
+                      </span>
+                    ))}
+                    {fetchedModelsList.length > 30 && (
+                      <span style={{ fontSize: 10, color: C.muted, alignSelf: "center" }}>
+                        +{fetchedModelsList.length - 30} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddProviderModal(false)}
+                  style={{ ...inputStyle, background: "transparent", cursor: "pointer", fontSize: 12 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveCustomProvider}
+                  disabled={!providerForm.label || !providerForm.baseUrl || !providerForm.apiKey}
+                  style={{ ...inputStyle, background: C.accent, color: "#fff", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 12 }}
+                >
+                  Save Provider & Models
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Add Model Modal */}
           {showAddModal && (

@@ -1,18 +1,17 @@
 import "dotenv/config"; // must load before PrismaClient is constructed
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import { PrismaClient } from "@prisma/client";
 
 // Get and process the connection string
 let databaseUrl = process.env.DATABASE_URL;
 
-if (process.env.VERCEL && databaseUrl) {
-  // On Vercel (production serverless), redirect connection to port 6543 (transaction mode pooler)
-  // to prevent connection exhaustion under scale.
-  if (databaseUrl.includes(":5432")) {
-    databaseUrl = databaseUrl.replace(":5432", ":6543");
-    if (!databaseUrl.includes("pgbouncer=true")) {
-      const sep = databaseUrl.includes("?") ? "&" : "?";
-      databaseUrl = `${databaseUrl}${sep}pgbouncer=true`;
-    }
+if (databaseUrl) {
+  // Ensure connection pool limits and timeouts to prevent connection exhaustion on Hostinger
+  if (!databaseUrl.includes("connection_limit")) {
+    const sep = databaseUrl.includes("?") ? "&" : "?";
+    databaseUrl = `${databaseUrl}${sep}connection_limit=5&connect_timeout=15`;
   }
 }
 

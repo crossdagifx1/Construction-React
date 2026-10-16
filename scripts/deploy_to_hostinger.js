@@ -1,76 +1,102 @@
+import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import https from "https";
+import { execSync } from "child_process";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distDir = path.resolve(__dirname, "../dist");
+const rootDir = path.resolve(__dirname, "..");
+const distDir = path.resolve(rootDir, "dist");
+const archiveFile = path.resolve(rootDir, "dist_bundle.zip");
 
-const TUS_BASE_URL = process.env.HOSTINGER_TUS_URL || "https://srv712-files.hstgr.io/rest/d6c16f4e4dc5d4e2/api/tus/public_html";
-const AUTH_KEY = process.env.HOSTINGER_AUTH_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoxLCJsb2NhbGUiOiJlbl9VUyIsInZpZXdNb2RlIjoibGlzdCIsInNpbmdsZUNsaWNrIjpmYWxzZSwicmVkaXJlY3RBZnRlckNvcHlNb3ZlIjpmYWxzZSwicGVybSI6eyJhZG1pbiI6ZmFsc2UsImV4ZWN1dGUiOmZhbHNlLCJjcmVhdGUiOnRydWUsInJlbmFtZSI6dHJ1ZSwibW9kaWZ5Ijp0cnVlLCJkZWxldGUiOnRydWUsInNoYXJlIjpmYWxzZSwiZG93bmxvYWQiOnRydWV9LCJjb21tYW5kcyI6W10sImxvY2tQYXNzd29yZCI6dHJ1ZSwiaGlkZURvdGZpbGVzIjpmYWxzZSwiZGF0ZUZvcm1hdCI6ZmFsc2UsInVzZXJuYW1lIjoidTMyNDk2Njg2OCIsImFjZUVkaXRvclRoZW1lIjoiIn0sImlzcyI6IkZpbGUgQnJvd3NlciIsImV4cCI6MTc5MTM5MTE5MywiaWF0IjoxNzkxMzY5NTkzfQ.DkXyd9kku4oiBk3NF1PJDJlgn-NnK4pQ2QA_4S_Dbiw";
-const REST_AUTH_KEY = process.env.HOSTINGER_REST_AUTH_KEY || "cbe10f8b0a633e3893feda89ff7bb1574a57e3033b928aa7588653b40ae1927e-d6c16f4e4dc5d4e2";
+const API_TOKEN = process.env.HOSTINGER_API_TOKEN || "mPQS4fPW6sDNrZnzOKHy7YwklPHWYcVTESNbrkldd32e1d6d";
+const USERNAME = process.env.HOSTINGER_USERNAME || "u324966868";
+const DOMAIN = process.env.HOSTINGER_DOMAIN || "haviinteriors.com";
+const ARCHIVE_NAME = "site.zip";
 
-function getAllFiles(dir, base = "") {
-  let results = [];
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    const relPath = base ? `${base}/${entry.name}` : entry.name;
-    if (entry.isDirectory()) {
-      results = results.concat(getAllFiles(fullPath, relPath));
-    } else {
-      results.push({ fullPath, relPath });
-    }
-  }
-  return results;
+function apiRequest(method, endpoint, body) {
+  return new Promise((resolve, reject) => {
+    const data = body ? JSON.stringify(body) : null;
+    const req = https.request(`https://developers.hostinger.com${endpoint}`, {
+      method,
+      headers: {
+        "Authorization": `Bearer ${API_TOKEN}`,
+        "Content-Type": "application/json",
+        ...(data ? { "Content-Length": Buffer.byteLength(data) } : {})
+      }
+    }, res => {
+      let resBody = "";
+      res.on("data", chunk => resBody += chunk);
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(resBody);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(parsed);
+          } else {
+            reject(new Error(`API ${method} ${endpoint} returned ${res.statusCode}: ${resBody}`));
+          }
+        } catch {
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve(resBody);
+          else reject(new Error(`API ${method} ${endpoint} returned ${res.statusCode}: ${resBody}`));
+        }
+      });
+    });
+    req.on("error", reject);
+    if (data) req.write(data);
+    req.end();
+  });
 }
 
-function uploadFile({ fullPath, relPath }) {
+function uploadTusArchive(uploadUrl, authKey, restAuthKey, buffer) {
   return new Promise((resolve, reject) => {
-    const content = fs.readFileSync(fullPath);
-    // encode each segment of the path so spaces (e.g. HAVI%20LOGO) are valid URLs
-    const encodedRelPath = relPath.split("/").map(encodeURIComponent).join("/");
-    const targetUrl = new URL(`${TUS_BASE_URL}/${encodedRelPath}?override=true`);
+    const targetUrl = new URL(`${uploadUrl}/${ARCHIVE_NAME}?override=true`);
+    const totalSize = buffer.length;
+
+    console.log(`[1/3] Initializing upload for ${ARCHIVE_NAME} (${(totalSize / 1024 / 1024).toFixed(2)} MB)...`);
 
     // 1. POST
     const postReq = https.request(targetUrl, {
       method: "POST",
       headers: {
-        "X-Auth": AUTH_KEY,
-        "X-Auth-Rest": REST_AUTH_KEY,
+        "X-Auth": authKey,
+        "X-Auth-Rest": restAuthKey,
         "Tus-Resumable": "1.0.0",
-        "Upload-Length": content.length,
+        "Upload-Length": totalSize,
         "Upload-Offset": "0",
-      },
+      }
     }, (postRes) => {
       postRes.resume();
       if (postRes.statusCode !== 201 && postRes.statusCode !== 200) {
-        return reject(new Error(`POST failed for ${relPath} with status ${postRes.statusCode}`));
+        return reject(new Error(`TUS POST failed with status ${postRes.statusCode}`));
       }
+
+      console.log(`[2/3] Uploading bundle data via TUS PATCH...`);
 
       // 2. PATCH
       const patchReq = https.request(targetUrl, {
         method: "PATCH",
         headers: {
-          "X-Auth": AUTH_KEY,
-          "X-Auth-Rest": REST_AUTH_KEY,
+          "X-Auth": authKey,
+          "X-Auth-Rest": restAuthKey,
           "Tus-Resumable": "1.0.0",
           "Upload-Offset": "0",
           "Content-Type": "application/offset+octet-stream",
-          "Content-Length": content.length,
-        },
+          "Content-Length": totalSize,
+        }
       }, (patchRes) => {
         patchRes.resume();
         if (patchRes.statusCode === 204 || patchRes.statusCode === 200) {
+          console.log(`[2/3] Upload completed successfully!`);
           resolve();
         } else {
-          reject(new Error(`PATCH failed for ${relPath} with status ${patchRes.statusCode}`));
+          reject(new Error(`TUS PATCH failed with status ${patchRes.statusCode}`));
         }
       });
 
       patchReq.on("error", reject);
-      patchReq.write(content);
+      patchReq.write(buffer);
       patchReq.end();
     });
 
@@ -79,49 +105,42 @@ function uploadFile({ fullPath, relPath }) {
   });
 }
 
-async function run() {
-  const files = getAllFiles(distDir);
-  console.log(`Starting deployment of ${files.length} files to Hostinger (haviinteriors.com)...`);
+async function main() {
+  console.log(`Packaging and deploying to Hostinger (${DOMAIN})...`);
 
-  const concurrency = 4;
-  let index = 0;
-  let succeeded = 0;
-  let failed = 0;
+  // Ensure fresh zip
+  console.log(`Compressing dist folder into dist_bundle.zip...`);
+  execSync(`powershell -Command "Push-Location dist; Compress-Archive -Path *,.htaccess -DestinationPath ..\\dist_bundle.zip -Force; Pop-Location"`, {
+    cwd: rootDir,
+    stdio: "inherit"
+  });
 
-  async function worker() {
-    while (index < files.length) {
-      const current = files[index++];
-      const num = index;
-      let retries = 2;
-      let ok = false;
-      while (retries >= 0 && !ok) {
-        try {
-          await uploadFile(current);
-          ok = true;
-          succeeded++;
-          console.log(`[${num}/${files.length}] Uploaded: ${current.relPath}`);
-        } catch (err) {
-          retries--;
-          if (retries < 0) {
-            failed++;
-            console.error(`[${num}/${files.length}] FAILED: ${current.relPath} -> ${err.message}`);
-          } else {
-            console.log(`[${num}/${files.length}] Retrying: ${current.relPath}...`);
-            await new Promise(r => setTimeout(r, 1000));
-          }
-        }
-      }
-    }
-  }
+  // Step 1: Generate fresh upload credentials
+  console.log(`Fetching upload credentials from Hostinger API...`);
+  const creds = await apiRequest("POST", "/api/hosting/v1/files/upload-urls", {
+    username: USERNAME,
+    domain: DOMAIN
+  });
 
-  const workers = Array.from({ length: concurrency }, () => worker());
-  await Promise.all(workers);
+  // Step 2: Upload archive via TUS
+  const buffer = fs.readFileSync(archiveFile);
+  await uploadTusArchive(creds.url, creds.auth_key, creds.rest_auth_key, buffer);
 
-  console.log("\n=================================");
-  console.log(`Deployment Finished!`);
-  console.log(`Succeeded: ${succeeded}`);
-  console.log(`Failed: ${failed}`);
-  console.log("=================================\n");
+  // Step 3: Trigger static deployment
+  console.log(`[3/3] Triggering server-side extraction and deployment of ${ARCHIVE_NAME}...`);
+  const deployRes = await apiRequest(
+    "POST",
+    `/api/hosting/v1/accounts/${USERNAME}/websites/${DOMAIN}/deploy`,
+    { archive_path: ARCHIVE_NAME }
+  );
+  console.log("Deployment response:", deployRes);
+
+  console.log("\n=============================================");
+  console.log(`🎉 SUCCESS: https://${DOMAIN} is live and fully deployed!`);
+  console.log("=============================================\n");
 }
 
-run().catch(console.error);
+main().catch(err => {
+  console.error("❌ Deployment failed:", err.message);
+  process.exit(1);
+});

@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000" : "");
+import { API_BASE } from "../../lib/api";
 
 const SESSION_KEY = "havi_chat_session_id";
 
