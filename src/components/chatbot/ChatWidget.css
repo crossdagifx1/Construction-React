@@ -1,15 +1,22 @@
 .havi-chat-widget {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
+  bottom: 24px;
+  right: 24px;
   z-index: 9999;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+@media (max-width: 640px) {
+  .havi-chat-widget {
+    bottom: 18px;
+    right: 18px;
+  }
+}
+
 /* Floating button */
 .havi-chat-fab {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: linear-gradient(135deg, #c8a96e 0%, #a07840 100%);
   border: none;
@@ -18,10 +25,18 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 8px 32px rgba(200,169,110,0.45), 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 28px rgba(200,169,110,0.4), 0 2px 8px rgba(0,0,0,0.25);
   position: relative;
   transition: transform 0.2s, box-shadow 0.2s;
 }
+
+@media (max-width: 640px) {
+  .havi-chat-fab {
+    width: 50px;
+    height: 50px;
+  }
+}
+
 .havi-chat-fab:hover {
   transform: scale(1.08);
   box-shadow: 0 12px 40px rgba(200,169,110,0.6), 0 2px 8px rgba(0,0,0,0.3);
@@ -57,7 +72,7 @@
 /* Chat panel */
 .havi-chat-panel {
   position: absolute;
-  bottom: 76px;
+  bottom: 70px;
   right: 0;
   width: 360px;
   max-height: 540px;
@@ -70,10 +85,14 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.1);
   backdrop-filter: blur(20px);
 }
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .havi-chat-panel {
-    width: calc(100vw - 24px);
-    right: -4px;
+    position: fixed;
+    bottom: 76px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: calc(100svh - 110px);
   }
 }
 

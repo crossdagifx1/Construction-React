@@ -24,28 +24,28 @@ const Hero = () => {
     <section
       id="hero"
       ref={ref}
-      className="relative min-h-[100svh] overflow-hidden bg-paper pt-28 lg:pt-0"
+      className="relative min-h-[100svh] overflow-hidden bg-paper pt-24 pb-16 sm:pt-28 lg:py-0"
     >
       <motion.span
         style={{ y: markY }}
         aria-hidden
-        className="pointer-events-none absolute -right-6 top-[14%] z-0 select-none font-display text-[26vw] leading-none text-ink/[0.04] lg:text-[20vw]"
+        className="pointer-events-none absolute -right-6 top-[10%] z-0 select-none font-display text-[22vw] leading-none text-ink/[0.04] sm:text-[26vw] lg:text-[20vw]"
       >
         design
       </motion.span>
 
-      <div className="shell relative z-10 grid min-h-[100svh] grid-cols-1 items-center gap-10 lg:grid-cols-12">
-        <div className="lg:col-span-6 lg:pr-8">
+      <div className="shell relative z-10 grid min-h-[100svh] grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10">
+        <div className="pt-2 lg:col-span-6 lg:pr-8">
           <motion.span
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8, ease: EASE }}
-            className="eyebrow mb-7"
+            className="eyebrow mb-5 sm:mb-7"
           >
             {hero.eyebrow}
           </motion.span>
 
-          <h1 className="display text-[14vw] leading-[0.95] sm:text-7xl lg:text-[5.6rem]">
+          <h1 className="display text-[11.5vw] leading-[1.02] sm:text-7xl lg:text-[5.6rem]">
             {lines.map((line, i) => (
               <span key={i} className="block overflow-hidden">
                 <motion.span
@@ -76,7 +76,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.9, ease: EASE }}
-            className="mt-8 max-w-md text-lg leading-relaxed text-stone"
+            className="mt-6 max-w-md text-base leading-relaxed text-stone sm:mt-8 sm:text-lg"
           >
             {hero.subtitle}
           </motion.p>
@@ -85,11 +85,11 @@ const Hero = () => {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.95, duration: 0.9, ease: EASE }}
-            className="mt-10 flex flex-wrap items-center gap-4"
+            className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10"
           >
             <Link
               to="/portfolio"
-              className="group inline-flex items-center gap-2 rounded-full bg-ink px-8 py-4 text-sm font-medium text-paper transition-colors duration-500 hover:bg-accent-deep"
+              className="group inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3.5 text-sm font-medium text-paper transition-colors duration-500 hover:bg-accent-deep sm:px-8 sm:py-4"
             >
               View our work
               <FiArrowUpRight className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -104,7 +104,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.25, duration: 0.9 }}
-            className="mt-8 flex flex-wrap items-center gap-2.5 text-[10px] uppercase tracking-wider text-stone/50"
+            className="mt-6 hidden flex-wrap items-center gap-2 text-[10px] uppercase tracking-wider text-stone/50 sm:flex sm:mt-8"
           >
             <span>
               Crafted by{" "}
@@ -142,19 +142,19 @@ const Hero = () => {
           </motion.div>
         </div>
 
-        <div className="relative lg:col-span-6">
+        <div className="relative mt-2 lg:mt-0 lg:col-span-6">
           <motion.div
             initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1.2, ease: EASE }}
             className="relative mx-auto flex max-w-xl items-end justify-center w-full"
           >
-            <div className="absolute bottom-0 h-[78%] w-full rounded-t-[140px] bg-sand" />
+            <div className="absolute bottom-0 h-[78%] w-full rounded-t-[100px] sm:rounded-t-[140px] bg-sand" />
             <motion.img
               style={{ y: imgY }}
               src={hero.image}
               alt="HAVI'S DESIGN project lead on site"
-              className="relative z-10 max-h-[82svh] w-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
+              className="relative z-10 max-h-[65svh] sm:max-h-[82svh] w-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
             />
           </motion.div>
 
@@ -162,12 +162,12 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.1, duration: 0.9, ease: EASE }}
-            className="absolute bottom-6 left-0 z-20 rounded-2xl border border-line bg-paper/90 px-5 py-4 shadow-xl backdrop-blur"
+            className="absolute bottom-4 left-2 z-20 rounded-2xl border border-line bg-paper/90 px-4 py-3 sm:bottom-6 sm:left-0 sm:px-5 sm:py-4 shadow-xl backdrop-blur"
           >
-            <p className="font-display text-3xl tracking-tightest">
+            <p className="font-display text-2xl sm:text-3xl tracking-tightest">
               {hero.statValue}
             </p>
-            <p className="text-xs uppercase tracking-widest text-stone">
+            <p className="text-[10px] sm:text-xs uppercase tracking-widest text-stone">
               {hero.statLabel}
             </p>
           </motion.div>
